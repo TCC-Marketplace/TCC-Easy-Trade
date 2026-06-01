@@ -1,0 +1,3598 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TCC EasyTrade — Smart Trading Contract</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#0B0E11;--sur:#161A1E;--card:#1E2329;--card2:#252B33;--hov:#2B3139;--deep:#0D1117;
+  --gold:#F0B90B;--gold2:#FCD535;--ok:#0ECB81;--err:#F6465D;--warn:#FF9900;--inf:#2196F3;
+  --long:#0ECB81;--short:#F6465D;
+  --t1:#EAECEF;--t2:#B7BDC6;--t3:#848E9C;--t4:#5E6673;
+  --bdr:rgba(255,255,255,0.06);--bdr2:rgba(255,255,255,0.1);--bdg:rgba(240,185,11,0.2);
+  --fd:'Figtree',sans-serif;--fm:'JetBrains Mono',monospace;--fb:'Space Grotesk',sans-serif;
+  --r:4px;--rl:8px;--rxl:12px;
+  --shadow-card:0 2px 12px rgba(0,0,0,.4);
+  --glow-ok:0 0 16px rgba(14,203,129,.12);
+  --glow-err:0 0 16px rgba(246,70,93,.12);
+  --glow-gold:0 0 16px rgba(240,185,11,.1);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--t1);font-family:var(--fb);font-size:14px;line-height:1.5;min-height:100vh;-webkit-font-smoothing:antialiased;}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:4px;}
+.nav{position:sticky;top:0;z-index:200;height:56px;background:rgba(11,14,17,.98);backdrop-filter:blur(20px);border-bottom:1px solid var(--bdr);padding:0 24px;display:flex;align-items:center;gap:16px;}
+.logo{font-family:var(--fd);font-size:18px;font-weight:800;color:var(--gold);cursor:pointer;display:flex;align-items:center;gap:8px;letter-spacing:-.02em;user-select:none;}
+.logo-sep{color:var(--t4);font-weight:300;font-size:18px;margin:0 2px;}
+.logo-tag{font-size:9px;font-weight:700;background:var(--gold);color:#0B0E11;padding:2px 7px;border-radius:3px;letter-spacing:.08em;font-family:var(--fm);text-transform:uppercase;}
+.nav-r{display:flex;align-items:center;gap:8px;margin-left:auto;}
+.nav-bal{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:5px 12px;}
+.nav-bal .bal-label{font-size:10px;color:var(--t4);text-transform:uppercase;letter-spacing:.06em;font-weight:600;}
+.nav-bal .bal-val{font-family:var(--fm);font-size:12px;font-weight:700;color:var(--t1);}
+.nav-live{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ok);font-family:var(--fm);padding:4px 10px;background:rgba(14,203,129,.05);border:1px solid rgba(14,203,129,.12);border-radius:var(--r);}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:7px 16px;border-radius:var(--r);font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s;font-family:var(--fb);}
+.btn:active{transform:scale(.98);}
+.btn-ghost{background:transparent;color:var(--t2);border:1px solid var(--bdr2);}
+.btn-ghost:hover{color:var(--t1);background:rgba(255,255,255,.04);}
+.btn-gold{background:var(--gold);color:#0B0E11;font-weight:700;}
+.btn-gold:hover{background:var(--gold2);}
+.btn-ok{background:rgba(14,203,129,.1);color:var(--ok);border:1px solid rgba(14,203,129,.2);}
+.btn-ok:hover{background:rgba(14,203,129,.18);}
+.btn-err{background:rgba(246,70,93,.1);color:var(--err);border:1px solid rgba(246,70,93,.2);}
+.btn-err:hover{background:rgba(246,70,93,.18);}
+.btn-inf{background:rgba(33,150,243,.1);color:var(--inf);border:1px solid rgba(33,150,243,.2);}
+.btn-warn{background:rgba(255,153,0,.1);color:var(--warn);border:1px solid rgba(255,153,0,.2);}
+.lev-btn.selected{background:rgba(240,185,11,.18)!important;color:var(--gold)!important;border-color:rgba(240,185,11,.45)!important;font-weight:700;}
+.btn-sm{padding:4px 11px;font-size:12px;}
+.btn-xs{padding:3px 8px;font-size:11px;}
+.w100{width:100%;justify-content:center;}
+.btn:disabled{opacity:.4;cursor:not-allowed;pointer-events:none;}
+.page{display:none;padding:20px 24px;max-width:1400px;margin:0 auto;}
+.page.active{display:block;}
+.tab-bar{display:flex;gap:0;background:transparent;border-bottom:1px solid var(--bdr);margin-bottom:20px;overflow-x:auto;padding:0;}
+.tab-bar::-webkit-scrollbar{height:0;}
+.tab-btn{flex-shrink:0;padding:11px 18px;border-radius:0;font-size:13px;font-weight:500;cursor:pointer;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--t3);font-family:var(--fb);white-space:nowrap;transition:all .15s;margin-bottom:-1px;}
+.tab-btn:hover{color:var(--t2);}
+.tab-btn.active{color:var(--t1);border-bottom-color:var(--gold);font-weight:600;}
+.tab-btn.active.gold{color:var(--gold);}
+.tab-pane{display:none;}
+.tab-pane.active{display:block;animation:fadeIn .15s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(3px);}to{opacity:1;transform:translateY(0);}}
+.card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--rl);padding:16px;transition:border-color .2s;}
+.card:hover{border-color:var(--bdr2);}
+.card-dark{background:var(--deep);}
+.card-gold{border-color:var(--bdg);box-shadow:var(--glow-gold);}
+.clbl{font-size:11px;color:var(--t3);margin-bottom:5px;letter-spacing:.05em;text-transform:uppercase;font-weight:500;}
+.cval{font-family:var(--fm);font-size:1.5rem;font-weight:700;}
+.cval-sm{font-family:var(--fm);font-size:1rem;font-weight:600;}
+.csub{font-size:11px;color:var(--t3);margin-top:3px;}
+.tok{color:var(--ok);}
+.terr{color:var(--err);}
+.twarn{color:var(--gold);}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.g5{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
+@media(max-width:900px){.g4{grid-template-columns:repeat(2,1fr);}.g5{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:640px){.g2,.g3,.g4,.g5{grid-template-columns:1fr;}}
+.bdg{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:3px;font-size:11px;font-weight:700;font-family:var(--fm);}
+.bdg-ok{background:rgba(14,203,129,.1);color:var(--ok);}
+.bdg-err{background:rgba(246,70,93,.1);color:var(--err);}
+.bdg-warn{background:rgba(255,153,0,.1);color:var(--warn);}
+.bdg-gold{background:rgba(240,185,11,.1);color:var(--gold);}
+.bdg-muted{background:rgba(255,255,255,.06);color:var(--t3);}
+.bdg-long{background:rgba(14,203,129,.12);color:var(--ok);border-radius:3px;padding:2px 7px;font-size:11px;font-weight:700;font-family:var(--fm);}
+.bdg-short{background:rgba(246,70,93,.12);color:var(--err);border-radius:3px;padding:2px 7px;font-size:11px;font-weight:700;font-family:var(--fm);}
+.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+.fg label{font-size:12px;color:var(--t3);font-weight:500;}
+.fg input,.fg select,.fg textarea{background:var(--card2);border:1px solid var(--bdr2);border-radius:var(--r);color:var(--t1);font-family:var(--fb);font-size:13px;padding:9px 12px;outline:none;transition:border-color .15s;width:100%;}
+.fg input:focus,.fg select:focus{border-color:rgba(240,185,11,.5);}
+.fg input::placeholder{color:var(--t4);}
+.fg select option{background:var(--card);}
+.input-addon{position:relative;}
+.input-addon input{padding-right:52px;}
+.input-addon .addon{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--t3);font-family:var(--fm);font-weight:700;}
+.mover{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(8px);opacity:0;pointer-events:none;transition:opacity .2s;}
+.mover.open{opacity:1;pointer-events:all;}
+.modal{background:var(--sur);border:1px solid var(--bdr2);border-radius:var(--rxl);width:100%;max-width:440px;max-height:92vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.8);animation:slideUp .2s ease;}
+@keyframes slideUp{from{transform:translateY(14px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.modal-lg{max-width:600px;}
+.mhead{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-bottom:1px solid var(--bdr);position:sticky;top:0;background:var(--sur);z-index:5;}
+.mtitle{font-family:var(--fd);font-size:14px;font-weight:700;color:var(--t1);}
+.mclose{width:26px;height:26px;border-radius:var(--r);background:transparent;border:1px solid var(--bdr);color:var(--t3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .15s;}
+.mclose:hover{background:var(--hov);color:var(--t1);}
+.mbody{padding:18px;}
+.steps{display:flex;align-items:center;margin-bottom:18px;}
+.step-dot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:var(--fm);flex-shrink:0;border:2px solid var(--bdr2);background:var(--card2);color:var(--t4);transition:all .25s;}
+.step-dot.active{border-color:var(--gold);background:rgba(240,185,11,.1);color:var(--gold);}
+.step-dot.done{border-color:var(--ok);background:rgba(14,203,129,.1);color:var(--ok);}
+.step-line{flex:1;height:1px;background:var(--bdr2);}
+.step-line.done{background:var(--ok);}
+.plan-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+@media(max-width:560px){.plan-grid{grid-template-columns:repeat(2,1fr);}}
+.plan-card{border:1px solid var(--bdr2);border-radius:var(--rl);padding:14px 10px;text-align:center;cursor:pointer;transition:all .2s;background:var(--card2);}
+.plan-card:hover{border-color:rgba(240,185,11,.3);background:rgba(240,185,11,.03);}
+.plan-card.selected{border-color:var(--gold);background:rgba(240,185,11,.06);box-shadow:var(--glow-gold);}
+.plan-dur{font-family:var(--fd);font-size:1.1rem;font-weight:800;color:var(--t1);}
+.plan-apy{font-family:var(--fm);font-size:1.35rem;font-weight:700;color:var(--gold);margin:4px 0;}
+.plan-lbl{font-size:10px;color:var(--t4);text-transform:uppercase;letter-spacing:.05em;}
+.coin-list{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.coin-opt{border:1px solid var(--bdr2);border-radius:var(--r);padding:10px 12px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:10px;background:var(--card2);}
+.coin-opt:hover{border-color:rgba(240,185,11,.3);}
+.coin-opt.selected{border-color:var(--gold);background:rgba(240,185,11,.06);}
+.coin-icon{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;background:var(--hov);flex-shrink:0;}
+.coin-name{font-size:13px;font-weight:700;}
+.coin-price{font-size:11px;color:var(--t3);font-family:var(--fm);}
+.dir-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.dir-btn{border:1px solid var(--bdr2);border-radius:var(--r);padding:14px;text-align:center;cursor:pointer;transition:all .2s;background:var(--card2);}
+.dir-btn.long.selected{border-color:var(--ok);background:rgba(14,203,129,.08);box-shadow:var(--glow-ok);}
+.dir-btn.short.selected{border-color:var(--err);background:rgba(246,70,93,.08);box-shadow:var(--glow-err);}
+.dir-ico{font-size:1.5rem;margin-bottom:4px;}
+.dir-name{font-size:14px;font-weight:700;font-family:var(--fd);}
+.dir-desc{font-size:11px;color:var(--t3);margin-top:2px;}
+.budget-bar-wrap{margin:10px 0;}
+.budget-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--t3);margin-bottom:4px;font-family:var(--fm);}
+.budget-bar{height:4px;border-radius:50px;background:var(--card2);overflow:hidden;}
+.budget-fill{height:100%;border-radius:50px;background:var(--ok);transition:width .5s cubic-bezier(.4,0,.2,1);}
+.budget-fill.warn{background:var(--gold);}
+.budget-fill.danger{background:var(--err);}
+/* POSITION CARD - Binance Futures style */
+.pos-card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--rl);overflow:hidden;margin-bottom:8px;transition:border-color .2s;}
+.pos-card:hover{border-color:var(--bdr2);}
+.pos-card-header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--card2);border-bottom:1px solid var(--bdr);}
+.pos-card-body{display:grid;grid-template-columns:repeat(3,1fr);}
+.pos-cell{padding:12px 16px;border-right:1px solid var(--bdr);}
+.pos-cell:last-child{border-right:none;}
+.pos-cell-label{font-size:10px;color:var(--t4);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em;font-weight:600;}
+.pos-cell-val{font-family:var(--fm);font-size:13px;font-weight:700;color:var(--t1);}
+.pos-pnl-area{padding:9px 16px;border-top:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,.12);}
+.pos-actions-area{padding:9px 16px;border-top:1px solid var(--bdr);display:flex;gap:8px;}
+.pos-coin-info{display:flex;align-items:center;gap:8px;}
+.pos-symbol{font-size:13px;font-weight:700;font-family:var(--fd);}
+.pos-meta{display:flex;align-items:center;gap:5px;margin-top:2px;}
+.lev-tag{background:rgba(240,185,11,.1);color:var(--gold);border:1px solid rgba(240,185,11,.2);border-radius:3px;padding:1px 6px;font-size:10px;font-weight:700;font-family:var(--fm);}
+.perp-tag{background:rgba(255,255,255,.05);color:var(--t4);border-radius:3px;padding:1px 5px;font-size:10px;font-family:var(--fm);}
+@media(max-width:640px){.pos-card-body{grid-template-columns:1fr 1fr;}.pos-cell:nth-child(2){border-right:none;}.pos-cell{border-bottom:1px solid var(--bdr);}.pos-cell:last-child{border-bottom:none;border-right:none;}}
+.cd-wrap{display:inline-flex;align-items:center;gap:3px;}
+.cdu{display:flex;flex-direction:column;align-items:center;}
+.cdn{font-family:var(--fm);font-size:12px;font-weight:700;color:var(--t1);background:var(--card2);border:1px solid var(--bdr);border-radius:3px;padding:3px 6px;min-width:22px;text-align:center;display:block;}
+.cdl{font-size:9px;color:var(--t4);letter-spacing:.04em;margin-top:2px;text-transform:uppercase;}
+.cds{color:var(--t4);font-size:11px;font-family:var(--fm);padding:0 1px;}
+.tbl-wrap{overflow-x:auto;border-radius:var(--rl);border:1px solid var(--bdr);}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{background:var(--card2);color:var(--t4);font-size:11px;font-weight:600;padding:9px 14px;text-align:left;letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid var(--bdr);white-space:nowrap;}
+.tbl td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.03);color:var(--t2);vertical-align:middle;}
+.tbl td.num,.tbl-mono{font-family:var(--fm);color:var(--t1);}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:rgba(255,255,255,.013);}
+.overview-hero{background:linear-gradient(135deg,rgba(240,185,11,.05),var(--card));border:1px solid var(--bdg);border-radius:var(--rl);padding:18px;position:relative;overflow:hidden;}
+.overview-hero::after{content:'';position:absolute;top:-50px;right:-50px;width:180px;height:180px;background:radial-gradient(circle,rgba(240,185,11,.07),transparent 65%);pointer-events:none;}
+.lock-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(246,70,93,.07);border:1px solid rgba(246,70,93,.18);color:var(--err);padding:3px 9px;border-radius:3px;font-size:11px;font-weight:600;font-family:var(--fm);}
+.network-opts{display:flex;gap:6px;margin-bottom:12px;}
+.network-btn{flex:1;padding:8px;border:1px solid var(--bdr2);border-radius:var(--r);background:var(--card2);color:var(--t3);font-weight:600;font-size:12px;cursor:pointer;transition:all .15s;text-align:center;font-family:var(--fm);}
+.network-btn.selected{border-color:var(--gold);background:rgba(240,185,11,.06);color:var(--gold);}
+.empty-state{text-align:center;padding:40px 16px;color:var(--t4);}
+.empty-state .es-ico{font-size:2.5rem;margin-bottom:10px;opacity:.5;}
+.empty-state p{font-size:13px;}
+.stitle{font-family:var(--fd);font-size:1.15rem;font-weight:800;margin-bottom:14px;letter-spacing:-.01em;color:var(--t1);}
+.stitle span{color:var(--gold);}
+.stitle-sm{font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;}
+.info-box{background:rgba(33,150,243,.05);border:1px solid rgba(33,150,243,.12);border-radius:var(--r);padding:10px 14px;font-size:12px;color:var(--t3);margin-bottom:12px;line-height:1.5;}
+.warn-box{background:rgba(255,153,0,.05);border:1px solid rgba(255,153,0,.12);border-radius:var(--r);padding:10px 14px;font-size:12px;color:var(--t3);margin-bottom:12px;line-height:1.5;}
+.err-box{background:rgba(246,70,93,.05);border:1px solid rgba(246,70,93,.12);border-radius:var(--r);padding:10px 14px;font-size:12px;color:var(--err);margin-bottom:12px;line-height:1.5;}
+.contract-card{background:linear-gradient(135deg,rgba(240,185,11,.04),var(--card));border:1px solid rgba(240,185,11,.15);border-radius:var(--rl);padding:14px;position:relative;overflow:hidden;}
+.stat-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.03);}
+.stat-row:last-child{border-bottom:none;}
+.stat-key{font-size:12px;color:var(--t3);}
+.stat-val{font-family:var(--fm);font-size:12px;font-weight:600;color:var(--t1);}
+.wallet-cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(max-width:640px){.wallet-cols{grid-template-columns:1fr;}}
+.div{height:1px;background:var(--bdr);margin:14px 0;}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--ok);display:inline-block;animation:pulseLive 2s infinite;flex-shrink:0;}
+@keyframes pulseLive{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(14,203,129,.5);}50%{box-shadow:0 0 0 5px rgba(14,203,129,0);}}
+.back-btn{display:inline-flex;align-items:center;gap:5px;color:var(--t3);font-size:12px;cursor:pointer;padding:5px 0;margin-bottom:14px;transition:color .15s;}
+.back-btn:hover{color:var(--t1);}
+.chart-wrap{background:var(--deep);border:1px solid var(--bdr);border-radius:var(--rl);overflow:hidden;}
+.chart-header{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-bottom:1px solid var(--bdr);background:var(--card2);}
+.chart-tf-btns{display:flex;gap:4px;}
+.tf-btn{padding:3px 8px;border-radius:3px;font-size:11px;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--t3);font-family:var(--fm);transition:all .15s;}
+.tf-btn.active,.tf-btn:hover{background:var(--card);color:var(--t1);}
+#ct-selector-wrap label{font-size:11px;color:var(--t3);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em;font-weight:600;}
+#ct-selector{width:100%;background:var(--card2);color:var(--t1);border:1px solid var(--bdr2);border-radius:var(--r);padding:8px 12px;font-size:13px;cursor:pointer;font-family:var(--fb);outline:none;transition:border-color .15s;}
+#ct-selector:focus{border-color:rgba(240,185,11,.4);}
+.metric-card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--rl);padding:14px 16px;}
+.metric-card .mc-label{font-size:10px;color:var(--t4);text-transform:uppercase;letter-spacing:.07em;font-weight:700;margin-bottom:6px;}
+.metric-card .mc-val{font-family:var(--fm);font-size:1rem;font-weight:700;}
+.metric-card .mc-sub{font-size:10px;color:var(--t4);margin-top:3px;}
+.preview-box{background:var(--deep);border:1px solid var(--bdr);border-radius:var(--r);padding:12px;margin-top:10px;}
+.preview-box .prev-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px;}
+.preview-box .prev-row .pk{color:var(--t3);}
+.preview-box .prev-row .pv{font-family:var(--fm);color:var(--t1);font-weight:600;}
+.lev-row{display:flex;gap:6px;flex-wrap:wrap;}
+.lev-btn{padding:5px 11px;border:1px solid var(--bdr2);border-radius:var(--r);font-size:12px;font-weight:600;cursor:pointer;background:var(--card2);color:var(--t3);font-family:var(--fm);transition:all .15s;}
+.lev-btn:hover{border-color:rgba(240,185,11,.3);color:var(--t2);}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.section-header .sh-title{font-size:13px;font-weight:700;color:var(--t1);display:flex;align-items:center;gap:8px;}
+.ticker-strip{background:var(--deep);border-bottom:1px solid var(--bdr);padding:0 24px;overflow:hidden;height:28px;display:flex;align-items:center;}
+.ticker-inner{display:flex;gap:28px;animation:tickerScroll 35s linear infinite;white-space:nowrap;}
+.ticker-inner:hover{animation-play-state:paused;}
+@keyframes tickerScroll{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+.ticker-item{display:flex;align-items:center;gap:6px;font-size:11px;font-family:var(--fm);flex-shrink:0;}
+.ticker-sym{color:var(--t2);font-weight:700;}
+.ticker-price{color:var(--t1);}
+.ticker-chg.pos{color:var(--ok);}
+.ticker-chg.neg{color:var(--err);}
+@media(max-width:1024px){
+  #dash-deposit > div[style*="grid-template-columns:480px"]{grid-template-columns:1fr!important;}
+}
+@media(max-width:768px){.nav{padding:0 14px;height:50px;}.page{padding:12px 14px;}.nav-bal{display:none;}.ticker-strip{display:none;}
+  #op-form > div[style*="grid-template-columns:1fr 380px"]{display:block!important;}
+  #op-form > div > div[style*="position:sticky"]{position:relative!important;top:0!important;margin-top:12px;}
+  .pos-list-hdr{display:none;}
+}
+@media(max-width:480px){.tab-btn{padding:8px 12px;font-size:12px;}}
+</style>
+
+<script>
+// ── Early stubs: ทำให้ onclick HTML ไม่ error ก่อน main script โหลด ──
+function _defer(fn) { return function() { var a=arguments; window.addEventListener('load', function(){ fn.apply(null,a); }); }; }
+// จะถูก override โดย main script ด้านล่าง
+function goPage(id)          { document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); var el=document.getElementById('page-'+id); if(el)el.classList.add('active'); }
+function openM(id)           { var el=document.getElementById(id); if(el)el.classList.add('open'); }
+function closeM(id)          { var el=document.getElementById(id); if(el)el.classList.remove('open'); }
+function goBack()            { window.location.href='index.html'; }
+function requireLogin(cb)    { var el=document.getElementById('m-auth'); if(el)el.classList.add('open'); }
+function requireBalance(cb)  { requireLogin(cb); }
+function switchDashTab(id,btn) {
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  var el=document.getElementById('dash-'+id); if(el)el.classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active','gold'));
+  if(btn){btn.classList.add('active','gold');}
+  if(id==='positions'){ if(typeof renderPositions==='function') renderPositions(); }
+  if(id==='open-position'){ if(typeof renderOpenOrderForm==='function') renderOpenOrderForm(); }
+  if(id==='realized'){ if(typeof renderRealized==='function') renderRealized(); }
+  if(id==='history'){ if(typeof renderPayoutHistory==='function') renderPayoutHistory(); }
+  if(id==='deposit'){ if(typeof renderDeposits==='function') renderDeposits(); }
+  if(id==='transactions'){ if(typeof renderTransactionHistory==='function') renderTransactionHistory(); }
+}
+</script>
+</head>
+<body>
+
+<!-- ═══════ NAV ═══════ -->
+<!-- TICKER STRIP -->
+<div class="ticker-strip" id="ticker-strip">
+  <div class="ticker-inner" id="ticker-inner">
+    <span class="ticker-item"><span class="ticker-sym">BTC/USDT</span><span class="ticker-price" data-ticker="BTC">—</span><span class="ticker-chg" data-ticker-chg="BTC">—</span></span>
+    <span class="ticker-item"><span class="ticker-sym">ETH/USDT</span><span class="ticker-price" data-ticker="ETH">—</span><span class="ticker-chg" data-ticker-chg="ETH">—</span></span>
+    <span class="ticker-item"><span class="ticker-sym">SOL/USDT</span><span class="ticker-price" data-ticker="SOL">—</span><span class="ticker-chg" data-ticker-chg="SOL">—</span></span>
+    <span class="ticker-item"><span class="ticker-sym">BNB/USDT</span><span class="ticker-price" data-ticker="BNB">—</span><span class="ticker-chg" data-ticker-chg="BNB">—</span></span>
+    <span class="ticker-item"><span class="ticker-sym">BTC/USDT</span><span class="ticker-price" data-ticker="BTC">—</span><span class="ticker-chg" data-ticker-chg="BTC">—</span></span>
+    <span class="ticker-item"><span class="ticker-sym">ETH/USDT</span><span class="ticker-price" data-ticker="ETH">—</span><span class="ticker-chg" data-ticker-chg="ETH">—</span></span>
+    <span class="ticker-item"><span class="ticker-sym">SOL/USDT</span><span class="ticker-price" data-ticker="SOL">—</span><span class="ticker-chg" data-ticker-chg="SOL">—</span></span>
+    <span class="ticker-item"><span class="ticker-sym">BNB/USDT</span><span class="ticker-price" data-ticker="BNB">—</span><span class="ticker-chg" data-ticker-chg="BNB">—</span></span>
+  </div>
+</div>
+<nav class="nav">
+  <div class="logo" onclick="goPage('home')">
+    TCC<span class="logo-sep">·</span>ET
+    <span class="logo-tag">EASY TRADE</span>
+  </div>
+  <div class="nav-r">
+    <div class="nav-bal" id="nav-bal" style="display:none;">
+      <span class="bal-label">MAIN</span>
+      <span class="bal-val" id="nav-bal-num">0.00</span>
+      <span style="font-size:10px;color:var(--t4);font-family:var(--fm);">USDT</span>
+    </div>
+    <div class="nav-live" id="price-source-badge">
+      <span class="live-dot"></span> Hyperliquid Live
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="goBack()" style="font-size:12px;">← TCC หลัก</button>
+    <button class="btn btn-gold btn-sm" id="btn-login" onclick="openM('m-auth')">เข้าสู่ระบบ</button>
+    <button class="btn btn-ghost btn-sm" id="btn-logout" style="display:none;" onclick="doLogout()">ออก</button>
+  </div>
+</nav>
+
+<!-- ═══════ HOME PAGE ═══════ -->
+<div id="page-home" class="page active">
+  <!-- Hero -->
+  <div style="max-width:720px;margin:3rem auto 0;text-align:center;padding:0 1rem;">
+    <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(240,185,11,.08);border:1px solid rgba(240,185,11,.2);border-radius:50px;padding:5px 16px;font-size:11px;font-family:var(--fm);color:var(--gold);font-weight:700;letter-spacing:.08em;margin-bottom:24px;">
+      <span class="live-dot"></span> HYPERLIQUID LIVE · SMART TRADING CONTRACT
+    </div>
+    <h1 style="font-family:var(--fd);font-size:clamp(2rem,5vw,3rem);font-weight:800;line-height:1.1;margin-bottom:16px;letter-spacing:-.03em;">
+      TCC <span style="color:var(--gold);">EasyTrade</span>
+    </h1>
+    <p style="color:var(--t3);font-size:14px;line-height:1.8;margin-bottom:32px;max-width:520px;margin-left:auto;margin-right:auto;">
+      Stake USDT รับ APY รายเดือน พร้อม Order Budget สำหรับเทรด<br>
+      <span style="font-family:var(--fm);color:var(--t2);">BTC / ETH / SOL / BNB / XRP</span> ด้วย Leverage สูงสุด 150x
+    </p>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:40px;">
+      <button class="btn btn-gold" style="padding:11px 28px;font-size:14px;" onclick="requireLogin(()=>goPage('dashboard'))">เริ่มต้นใช้งาน</button>
+      <button class="btn btn-ghost" style="padding:11px 22px;font-size:14px;" onclick="openM('m-auth')">เข้าสู่ระบบ</button>
+    </div>
+  </div>
+
+  <!-- Stats bar -->
+  <div style="max-width:800px;margin:0 auto 32px;padding:0 1rem;">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--bdr);border:1px solid var(--bdr);border-radius:var(--rl);overflow:hidden;">
+      <div style="background:var(--card);padding:16px;text-align:center;">
+        <div style="font-family:var(--fm);font-size:1.3rem;font-weight:700;color:var(--gold);">6–12%</div>
+        <div style="font-size:10px;color:var(--t4);margin-top:3px;text-transform:uppercase;letter-spacing:.06em;">APY ต่อปี</div>
+      </div>
+      <div style="background:var(--card);padding:16px;text-align:center;">
+        <div style="font-family:var(--fm);font-size:1.3rem;font-weight:700;color:var(--t1);">150x</div>
+        <div style="font-size:10px;color:var(--t4);margin-top:3px;text-transform:uppercase;letter-spacing:.06em;">Max Leverage</div>
+      </div>
+      <div style="background:var(--card);padding:16px;text-align:center;">
+        <div style="font-family:var(--fm);font-size:1.3rem;font-weight:700;color:var(--t1);">5</div>
+        <div style="font-size:10px;color:var(--t4);margin-top:3px;text-transform:uppercase;letter-spacing:.06em;">เหรียญที่รองรับ</div>
+      </div>
+      <div style="background:var(--card);padding:16px;text-align:center;">
+        <div style="font-family:var(--fm);font-size:1.3rem;font-weight:700;color:var(--ok);">Live</div>
+        <div style="font-size:10px;color:var(--t4);margin-top:3px;text-transform:uppercase;letter-spacing:.06em;">Hyperliquid Price</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Feature cards -->
+  <div style="max-width:800px;margin:0 auto;padding:0 1rem 3rem;">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+      <div class="card" style="border-color:rgba(240,185,11,.15);padding:20px;">
+        <div style="width:36px;height:36px;border-radius:var(--r);background:rgba(240,185,11,.1);display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:14px;">🔒</div>
+        <div style="font-size:13px;font-weight:700;color:var(--t1);margin-bottom:6px;">Stake & Earn</div>
+        <div style="font-size:12px;color:var(--t3);line-height:1.6;">APY 6%–12% ต่อปี<br>Plan 3, 6, 9, 12 เดือน</div>
+      </div>
+      <div class="card" style="border-color:rgba(14,203,129,.15);padding:20px;">
+        <div style="width:36px;height:36px;border-radius:var(--r);background:rgba(14,203,129,.1);display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:14px;">💹</div>
+        <div style="font-size:13px;font-weight:700;color:var(--t1);margin-bottom:6px;">Order Trading</div>
+        <div style="font-size:12px;color:var(--t3);line-height:1.6;">Budget 10% ของ Stake<br>LONG / SHORT Leverage</div>
+      </div>
+      <div class="card" style="border-color:rgba(33,150,243,.15);padding:20px;">
+        <div style="width:36px;height:36px;border-radius:var(--r);background:rgba(33,150,243,.1);display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:14px;">💰</div>
+        <div style="font-size:13px;font-weight:700;color:var(--t1);margin-bottom:6px;">Monthly Payout</div>
+        <div style="font-size:12px;color:var(--t3);line-height:1.6;">APY + Commission<br>โอนเข้า Main Account</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ DASHBOARD ═══════ -->
+<div id="page-dashboard" class="page">
+  <div class="tab-bar">
+    <button class="tab-btn active gold" onclick="switchDashTab('overview',this)">Overview</button>
+    <button class="tab-btn" onclick="switchDashTab('open-position',this)">สัญญาเทรด</button>
+    <button class="tab-btn" onclick="switchDashTab('positions',this)">My Positions</button>
+    <button class="tab-btn" onclick="switchDashTab('realized',this)">Realized P/L</button>
+    <button class="tab-btn" onclick="switchDashTab('history',this)">APY & Commission</button>
+    <button class="tab-btn" onclick="switchDashTab('deposit',this)">Deposit</button>
+    <button class="tab-btn" onclick="switchDashTab('transactions',this)">ประวัติธุรกรรม</button>
+  </div>
+
+  <!-- OVERVIEW TAB -->
+  <div id="dash-overview" class="tab-pane active">
+
+    <!-- ── Row 1: Account Cards ── -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+
+      <!-- Main Account -->
+      <div class="card card-dark" style="border-color:var(--bdr2);padding:18px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <span style="font-size:11px;color:var(--t4);text-transform:uppercase;letter-spacing:.07em;font-weight:600;">Main Account</span>
+          <span class="bdg bdg-ok" style="font-size:10px;">💵 ถอนได้</span>
+        </div>
+        <div id="ov-main-bal" style="font-family:var(--fm);font-size:1.6rem;font-weight:700;color:var(--ok);letter-spacing:-.02em;margin-bottom:14px;">
+          0.00 <span style="font-size:14px;color:var(--t4);font-weight:500;">USDT</span>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-gold btn-sm" onclick="switchDashTab('deposit',document.querySelectorAll('.tab-btn')[5])">+ Deposit</button>
+          <button class="btn btn-ghost btn-sm" onclick="openWithdrawModal()">↑ ถอน</button>
+        </div>
+      </div>
+
+      <!-- Trading Contract -->
+      <div class="card card-dark" id="ov-contract-panel" style="display:none;border-color:var(--bdg);padding:18px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <span style="font-size:11px;color:var(--t4);text-transform:uppercase;letter-spacing:.07em;font-weight:600;">Trading Contract<span id="ov-contract-count" style="color:var(--gold);margin-left:6px;"></span></span>
+          <span class="lock-badge" style="font-size:10px;">🔒 <span id="ov-unlock-date">—</span></span>
+        </div>
+        <div id="ov-staked" style="font-family:var(--fm);font-size:1.6rem;font-weight:700;color:var(--gold);letter-spacing:-.02em;margin-bottom:6px;">
+          0.00 <span style="font-size:14px;color:var(--t4);font-weight:500;">USDT</span>
+        </div>
+        <div style="font-size:11px;color:var(--t3);margin-bottom:12px;">
+          Plan: <span id="ov-plan" style="color:var(--gold);font-family:var(--fm);">—</span>
+          &nbsp;·&nbsp; Budget: <span id="ov-budget-used" style="font-family:var(--fm);color:var(--t1);">0</span>/<span id="ov-budget-total" style="font-family:var(--fm);color:var(--t1);">0</span> <span style="color:var(--t4);">USDT</span>
+        </div>
+        <button class="btn btn-gold btn-sm" onclick="openStakeModal()" style="font-size:12px;">+ เพิ่มสัญญา</button>
+      </div>
+
+      <!-- No Contract -->
+      <div class="card card-dark" id="ov-no-contract" style="border:1px dashed rgba(255,255,255,.08);padding:18px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:8px;">
+        <div style="font-size:28px;opacity:.4;">📋</div>
+        <div style="font-size:12px;color:var(--t4);">ยังไม่มีสัญญาเทรด</div>
+        <button class="btn btn-gold btn-sm" onclick="requireBalance(()=>switchDashTab('open-position',document.querySelectorAll('.tab-btn')[1]))">เริ่มร่วมเทรด</button>
+      </div>
+    </div>
+
+    <!-- ── Row 2: PNL Metrics (Binance-style 4-column) ── -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--bdr);border:1px solid var(--bdr);border-radius:var(--rl);overflow:hidden;margin-bottom:14px;">
+      <div style="background:var(--card);padding:14px 16px;">
+        <div style="font-size:10px;color:var(--t4);text-transform:uppercase;letter-spacing:.07em;font-weight:600;margin-bottom:6px;">Unrealized P/L</div>
+        <div id="ov-unrealized" style="font-family:var(--fm);font-size:1rem;font-weight:700;">0.00</div>
+        <div style="font-size:10px;color:var(--t4);margin-top:3px;">จาก Open Positions</div>
+      </div>
+      <div style="background:var(--card);padding:14px 16px;">
+        <div style="font-size:10px;color:var(--t4);text-transform:uppercase;letter-spacing:.07em;font-weight:600;margin-bottom:6px;">Realized P/L</div>
+        <div id="ov-realized" style="font-family:var(--fm);font-size:1rem;font-weight:700;">0.00</div>
+        <div style="font-size:10px;color:var(--t4);margin-top:3px;">Order ที่ปิดแล้ว</div>
+      </div>
+      <div style="background:var(--card);padding:14px 16px;">
+        <div style="font-size:10px;color:var(--t4);text-transform:uppercase;letter-spacing:.07em;font-weight:600;margin-bottom:6px;">APY รับแล้ว</div>
+        <div id="ov-apy-paid" style="font-family:var(--fm);font-size:1rem;font-weight:700;color:var(--ok);">0.00</div>
+        <div style="font-size:10px;color:var(--t4);margin-top:3px;">รวมทุกเดือน</div>
+      </div>
+      <div style="background:var(--card);padding:14px 16px;">
+        <div style="font-size:10px;color:var(--t4);text-transform:uppercase;letter-spacing:.07em;font-weight:600;margin-bottom:6px;">Commission รับแล้ว</div>
+        <div id="ov-comm-paid" style="font-family:var(--fm);font-size:1rem;font-weight:700;color:var(--ok);">0.00</div>
+        <div style="font-size:10px;color:var(--t4);margin-top:3px;">40% ของ Realized P/L</div>
+      </div>
+    </div>
+
+    <!-- ── Row 3: Next Payout ── -->
+    <div style="display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;background:var(--card);border:1px solid var(--bdg);border-radius:var(--rl);padding:14px 18px;margin-bottom:20px;">
+      <div>
+        <div style="font-size:10px;color:var(--t4);text-transform:uppercase;letter-spacing:.07em;font-weight:600;margin-bottom:8px;">Payout ถัดไป</div>
+        <div id="ov-cd" class="cd-wrap" style="margin-bottom:6px;">
+          <span style="font-size:12px;color:var(--t4);">รอ Admin กำหนดรอบ</span>
+        </div>
+        <div style="font-size:11px;color:var(--t4);">วันที่: <span id="ov-next-payout-date" style="color:var(--gold);font-family:var(--fm);">—</span></div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:10px;color:var(--t4);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">ยอดประมาณ</div>
+        <div id="ov-next-payout" style="font-family:var(--fm);font-size:1.2rem;font-weight:700;color:var(--ok);">0.00 USDT</div>
+      </div>
+    </div>
+
+    <!-- ── Row 4: Open Positions ── -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div style="font-size:13px;font-weight:700;color:var(--t1);display:flex;align-items:center;gap:8px;">
+        Open Positions
+        <span id="ov-pos-count" style="font-family:var(--fm);font-size:11px;color:var(--t4);font-weight:500;">(0)</span>
+      </div>
+      <button class="btn btn-ghost btn-xs" onclick="switchDashTab('positions',document.querySelectorAll('.tab-btn')[2])">ดูทั้งหมด →</button>
+    </div>
+    <div id="ov-positions-list">
+      <div class="empty-state" style="padding:24px;"><div class="es-ico" style="font-size:2rem;">📭</div><p>ไม่มี Open Position</p></div>
+    </div>
+
+  </div>
+
+  <!-- OPEN POSITION TAB — CONTRACT CARDS VIEW -->
+  <div id="dash-open-position" class="tab-pane">
+
+    <!-- Header: Search + Add -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+      <div style="font-size:15px;font-weight:700;color:var(--t1);">สัญญา<span style="color:var(--gold);">เทรด</span></div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div style="position:relative;">
+          <input id="ct-search" type="text" placeholder="ค้นหาสัญญา..." oninput="filterContractCards(this.value)"
+            style="padding:7px 10px 7px 28px;background:var(--card2);border:1px solid var(--bdr);border-radius:var(--r);color:var(--t1);font-size:12px;width:180px;">
+          <span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none;color:var(--t4);">🔍</span>
+        </div>
+        <button class="btn btn-gold btn-sm" onclick="openStakeModal()">+ เพิ่มสัญญา</button>
+      </div>
+    </div>
+
+    <!-- CTA: ไม่มีสัญญา -->
+    <div id="op-stake-cta" style="display:none;">
+      <div style="max-width:480px;margin:2rem auto;text-align:center;padding:2rem 1rem;">
+        <div style="width:56px;height:56px;border-radius:var(--rl);background:rgba(240,185,11,.08);border:1px solid rgba(240,185,11,.2);display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 16px;">📋</div>
+        <div style="font-size:16px;font-weight:700;color:var(--t1);margin-bottom:8px;">ยังไม่มีสัญญาเทรด</div>
+        <p style="font-size:13px;color:var(--t3);line-height:1.7;margin-bottom:20px;">
+          Stake USDT เพื่อรับ <strong style="color:var(--gold);">วงเงินเทรด 10%</strong> ของยอด Stake<br>
+          และ <strong style="color:var(--ok);">APY รายเดือน</strong> ตลอดระยะสัญญา
+        </p>
+        <button class="btn btn-gold" style="padding:11px 28px;" onclick="openStakeModal()">สร้างสัญญาเทรด</button>
+      </div>
+    </div>
+
+    <!-- Contract Cards Grid -->
+    <div id="op-contract-cards" style="display:none;">
+      <div id="contract-cards-list" style="display:flex;flex-direction:column;gap:16px;"></div>
+    </div>
+
+    <!-- Hidden elements for backward compat with renderOpenOrderForm() -->
+    <div style="display:none;">
+      <div id="op-form"></div>
+      <select id="ct-selector"></select>
+      <div id="ct-selector-wrap"></div>
+      <div id="ct-label"></div>
+      <div id="ct-period"></div>
+      <div id="ct-apy"></div>
+      <div id="ct-remaining"></div>
+      <div id="op-used"></div>
+      <div id="op-remaining"></div>
+      <div id="op-remaining-pct"></div>
+      <div id="op-budget-fill"></div>
+      <div id="op-total-budget"></div>
+      <div id="op-positions-mini"></div>
+      <div id="op-budget-exhausted"></div>
+      <div id="op-submit-area"></div>
+      <div id="btn-open-order"></div>
+      <div id="op-budget-empty"></div>
+      <div id="op-budget-msg"></div>
+    </div>
+
+  </div><!-- /dash-open-position -->
+
+  <!-- MY POSITIONS TAB -->
+  <div id="dash-positions" class="tab-pane">
+
+    <!-- Summary bar -->
+    <div id="pos-summary-bar" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--bdr);border:1px solid var(--bdr);border-radius:var(--rl);overflow:hidden;margin-bottom:16px;">
+      <div style="background:var(--card);padding:12px 16px;">
+        <div style="font-size:10px;color:var(--t4);text-transform:uppercase;letter-spacing:.07em;font-weight:700;margin-bottom:4px;">Open Positions</div>
+        <div id="pos-sum-total" style="font-family:var(--fm);font-size:1.1rem;font-weight:700;color:var(--t1);">0</div>
+      </div>
+      <div style="background:var(--card);padding:12px 16px;">
+        <div style="font-size:10px;color:var(--t4);text-transform:uppercase;letter-spacing:.07em;font-weight:700;margin-bottom:4px;">Total Order Amount</div>
+        <div id="pos-sum-amount" style="font-family:var(--fm);font-size:1.1rem;font-weight:700;color:var(--gold);">0.00 USDT</div>
+      </div>
+      <div style="background:var(--card);padding:12px 16px;">
+        <div style="font-size:10px;color:var(--t4);text-transform:uppercase;letter-spacing:.07em;font-weight:700;margin-bottom:4px;">Unrealized P/L</div>
+        <div id="pos-sum-pnl" style="font-family:var(--fm);font-size:1.1rem;font-weight:700;">0.00 USDT</div>
+      </div>
+      <div style="background:var(--card);padding:12px 16px;">
+        <div style="font-size:10px;color:var(--t4);text-transform:uppercase;letter-spacing:.07em;font-weight:700;margin-bottom:4px;">LONG / SHORT</div>
+        <div id="pos-sum-ratio" style="font-family:var(--fm);font-size:1.1rem;font-weight:700;color:var(--t2);">0 / 0</div>
+      </div>
+    </div>
+
+    <!-- Header row -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+      <div style="font-size:15px;font-weight:700;color:var(--t1);">My <span style="color:var(--gold);">Positions</span></div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button class="btn btn-gold btn-sm" onclick="toggleNewOrderPanel()" id="btn-toggle-new-order" style="font-size:12px;">+ เปิด Order ใหม่</button>
+        <button class="btn btn-ghost btn-sm" onclick="refreshPositions()" id="btn-refresh-pos" style="font-size:12px;">↺ รีเฟรช</button>
+        <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ok);">
+          <span class="live-dot"></span> อัปเดตทุก 5 วิ
+        </div>
+      </div>
+    </div>
+
+    <!-- NEW ORDER PANEL (inline, collapsible) -->
+    <div id="new-order-panel" style="display:none;margin-bottom:16px;">
+      <div style="background:var(--card);border:1px solid rgba(240,185,11,.25);border-radius:var(--rl);overflow:hidden;box-shadow:var(--glow-gold);">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--bdr);background:rgba(240,185,11,.04);">
+          <div style="font-size:13px;font-weight:700;color:var(--gold);">📈 เปิด Order ใหม่</div>
+          <button onclick="toggleNewOrderPanel()" style="background:transparent;border:none;color:var(--t3);cursor:pointer;font-size:16px;padding:0 4px;">✕</button>
+        </div>
+        <div style="padding:14px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+            <!-- Contract selector -->
+            <div>
+              <div style="font-size:11px;color:var(--t3);margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;">เลือกสัญญา</div>
+              <select id="np-ct-selector" onchange="syncNewOrderContract(this.value)" style="width:100%;padding:8px 10px;background:var(--card2);border:1px solid var(--bdr2);border-radius:var(--r);color:var(--t1);font-size:12px;font-family:var(--fb);outline:none;"></select>
+            </div>
+            <!-- Coin selector -->
+            <div>
+              <div style="font-size:11px;color:var(--t3);margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;">เหรียญ</div>
+              <select id="np-coin-selector" onchange="npSelectCoin(this.value)" style="width:100%;padding:8px 10px;background:var(--card2);border:1px solid var(--bdr2);border-radius:var(--r);color:var(--t1);font-size:12px;font-family:var(--fb);outline:none;"></select>
+            </div>
+          </div>
+
+          <!-- Budget info -->
+          <div id="np-budget-info" style="background:var(--card2);border-radius:var(--r);padding:10px 12px;margin-bottom:12px;font-size:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
+            <span style="color:var(--t3);">วงเงินคงเหลือ: <span id="np-remaining" style="font-family:var(--fm);color:var(--ok);font-weight:700;">0.00</span> USDT</span>
+            <span style="color:var(--t3);">ใช้ไป: <span id="np-used" style="font-family:var(--fm);color:var(--gold);font-weight:700;">0.00</span> / <span id="np-total" style="font-family:var(--fm);color:var(--t2);">0.00</span> USDT</span>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+            <!-- Direction -->
+            <div>
+              <div style="font-size:11px;color:var(--t3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;">ทิศทาง</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                <div id="np-dir-long" onclick="npSelectDir('LONG')" style="border:1px solid rgba(14,203,129,.5);border-radius:var(--r);padding:8px;text-align:center;cursor:pointer;background:rgba(14,203,129,.1);">
+                  <div style="font-size:12px;font-weight:700;color:var(--ok);">LONG</div>
+                  <div style="font-size:10px;color:var(--t4);">ซื้อ/ขึ้น</div>
+                </div>
+                <div id="np-dir-short" onclick="npSelectDir('SHORT')" style="border:1px solid var(--bdr2);border-radius:var(--r);padding:8px;text-align:center;cursor:pointer;background:var(--card2);">
+                  <div style="font-size:12px;font-weight:700;color:var(--err);">SHORT</div>
+                  <div style="font-size:10px;color:var(--t4);">ขาย/ลง</div>
+                </div>
+              </div>
+            </div>
+            <!-- Amount -->
+            <div>
+              <div style="font-size:11px;color:var(--t3);margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;">Order Amount (USDT)</div>
+              <div class="input-addon">
+                <input type="number" id="np-amount" placeholder="0.00" min="1" step="0.01" oninput="updateNpPreview()" style="font-family:var(--fm);font-size:14px;font-weight:600;">
+                <span class="addon">USDT</span>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:5px;">
+                <button class="btn btn-ghost btn-xs" style="font-family:var(--fm);" onclick="setNpPct(.25)">25%</button>
+                <button class="btn btn-ghost btn-xs" style="font-family:var(--fm);" onclick="setNpPct(.50)">50%</button>
+                <button class="btn btn-ghost btn-xs" style="font-family:var(--fm);" onclick="setNpPct(.75)">75%</button>
+                <button class="btn btn-gold btn-xs" style="font-family:var(--fm);" onclick="setNpPct(1)">MAX</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Leverage -->
+          <div style="margin-bottom:14px;">
+            <div style="font-size:11px;color:var(--t3);margin-bottom:6px;">Leverage</div>
+            <div style="display:flex;gap:5px;flex-wrap:wrap;">
+              <button class="lev-btn" onclick="npSelectLev(1)" id="np-lev-1">1x</button>
+              <button class="lev-btn" onclick="npSelectLev(5)" id="np-lev-5">5x</button>
+              <button class="lev-btn" onclick="npSelectLev(10)" id="np-lev-10">10x</button>
+              <button class="lev-btn" onclick="npSelectLev(20)" id="np-lev-20">20x</button>
+              <button class="lev-btn selected" onclick="npSelectLev(100)" id="np-lev-100">100x ⚠</button>
+              <button class="lev-btn" onclick="npSelectLev(150)" id="np-lev-150">150x ⚠</button>
+            </div>
+            <div id="np-lev-warn" style="display:none;font-size:10px;color:var(--err);margin-top:4px;">⚠ Leverage สูง ใช้ด้วยความระมัดระวัง</div>
+          </div>
+
+          <!-- Preview + Submit -->
+          <div id="np-preview" style="display:none;" class="preview-box" style="margin-bottom:12px;">
+            <div class="prev-row"><span class="pk">Mark Price</span><span class="pv" id="np-prev-price">—</span></div>
+            <div class="prev-row"><span class="pk">Order Amount</span><span class="pv" id="np-prev-amt">—</span></div>
+            <div class="prev-row"><span class="pk">Leverage</span><span class="pv" id="np-prev-lev">—</span></div>
+            <div class="prev-row"><span class="pk">Notional</span><span class="pv" id="np-prev-notional">—</span></div>
+          </div>
+          <div id="np-warn" style="display:none;font-size:11px;color:var(--err);margin-bottom:8px;"></div>
+          <button class="btn btn-ok w100" id="np-submit-btn" onclick="submitNewOrderFromPanel()" style="padding:11px;font-size:14px;font-weight:700;">เปิด Order</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search + Filter bar -->
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
+      <div style="position:relative;flex:1;min-width:180px;">
+        <input id="pos-search" type="text" placeholder="ค้นหา Symbol เช่น BTC, ETH..." oninput="filterPositions()"
+          style="width:100%;padding:7px 10px 7px 28px;background:var(--card2);border:1px solid var(--bdr);border-radius:var(--r);color:var(--t1);font-size:12px;box-sizing:border-box;">
+        <span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none;color:var(--t4);">🔍</span>
+      </div>
+      <select id="pos-filter-dir" onchange="filterPositions()" style="padding:7px 10px;background:var(--card2);border:1px solid var(--bdr);border-radius:var(--r);color:var(--t1);font-size:12px;">
+        <option value="">ทิศทาง: ทั้งหมด</option>
+        <option value="LONG">LONG เท่านั้น</option>
+        <option value="SHORT">SHORT เท่านั้น</option>
+      </select>
+      <select id="pos-filter-contract" onchange="filterPositions()" style="padding:7px 10px;background:var(--card2);border:1px solid var(--bdr);border-radius:var(--r);color:var(--t1);font-size:12px;">
+        <option value="">สัญญา: ทั้งหมด</option>
+      </select>
+      <div id="pos-count" style="font-size:11px;color:var(--t4);white-space:nowrap;"></div>
+    </div>
+    <!-- Column headers (Binance style) -->
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1.5fr;gap:0;padding:8px 16px;background:var(--card2);border:1px solid var(--bdr);border-radius:var(--r) var(--r) 0 0;font-size:10px;color:var(--t4);text-transform:uppercase;letter-spacing:.07em;font-weight:700;" class="pos-list-hdr">
+      <span>Symbol</span><span>Entry Price</span><span>Mark Price</span><span>Amount</span><span style="text-align:right;">P/L (ROI%)</span>
+    </div>
+    <div id="positions-list" style="border:1px solid var(--bdr);border-top:none;border-radius:0 0 var(--r) var(--r);">
+      <div class="empty-state"><div class="es-ico">📭</div><p>ไม่มี Open Position</p></div>
+    </div>
+  </div>
+
+  <!-- REALIZED P/L TAB -->
+  <div id="dash-realized" class="tab-pane">
+    <!-- Summary bar -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--bdr);border:1px solid var(--bdr);border-radius:var(--rl);overflow:hidden;margin-bottom:16px;">
+      <div style="background:var(--card);padding:14px 16px;">
+        <div style="font-size:10px;color:var(--t4);text-transform:uppercase;letter-spacing:.07em;font-weight:700;margin-bottom:5px;">Total Realized P/L</div>
+        <div id="rl-total" style="font-family:var(--fm);font-size:1.1rem;font-weight:700;">0.00 USDT</div>
+      </div>
+      <div style="background:var(--card);padding:14px 16px;">
+        <div style="font-size:10px;color:var(--t4);text-transform:uppercase;letter-spacing:.07em;font-weight:700;margin-bottom:5px;">Win Orders</div>
+        <div id="rl-wins" style="font-family:var(--fm);font-size:1.1rem;font-weight:700;color:var(--ok);">0</div>
+      </div>
+      <div style="background:var(--card);padding:14px 16px;">
+        <div style="font-size:10px;color:var(--t4);text-transform:uppercase;letter-spacing:.07em;font-weight:700;margin-bottom:5px;">Loss Orders</div>
+        <div id="rl-losses" style="font-family:var(--fm);font-size:1.1rem;font-weight:700;color:var(--err);">0</div>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr>
+          <th>Symbol</th><th>Direction</th><th>Entry</th><th>Exit</th>
+          <th>Amount</th><th>Leverage</th><th>Realized P/L</th><th>วันที่ปิด</th>
+        </tr></thead>
+        <tbody id="realized-tbody">
+          <tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--t3);">ไม่มีรายการ</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- APY & COMMISSION TAB -->
+  <div id="dash-history" class="tab-pane">
+    <!-- Summary -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--bdr);border:1px solid var(--bdr);border-radius:var(--rl);overflow:hidden;margin-bottom:16px;">
+      <div style="background:var(--card);padding:14px 16px;">
+        <div style="font-size:10px;color:var(--t4);text-transform:uppercase;letter-spacing:.07em;font-weight:700;margin-bottom:5px;">APY รับแล้ว</div>
+        <div id="apy-total-paid" style="font-family:var(--fm);font-size:1.1rem;font-weight:700;color:var(--ok);">0.00 USDT</div>
+      </div>
+      <div style="background:var(--card);padding:14px 16px;">
+        <div style="font-size:10px;color:var(--t4);text-transform:uppercase;letter-spacing:.07em;font-weight:700;margin-bottom:5px;">Commission รับแล้ว</div>
+        <div id="comm-total-paid" style="font-family:var(--fm);font-size:1.1rem;font-weight:700;color:var(--gold);">0.00 USDT</div>
+      </div>
+      <div style="background:var(--card);padding:14px 16px;">
+        <div style="font-size:10px;color:var(--t4);text-transform:uppercase;letter-spacing:.07em;font-weight:700;margin-bottom:5px;">รวมทั้งหมด</div>
+        <div id="income-total-paid" style="font-family:var(--fm);font-size:1.1rem;font-weight:700;">0.00 USDT</div>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr>
+          <th>รอบ</th><th>APY (USDT)</th><th>Commission (USDT)</th><th>รวม</th><th>สถานะ</th><th>วันที่โอน</th>
+        </tr></thead>
+        <tbody id="payout-tbody">
+          <tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--t3);">ไม่มีรายการ</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- DEPOSIT TAB -->
+  <div id="dash-deposit" class="tab-pane">
+    <div style="display:grid;grid-template-columns:480px 1fr;gap:20px;align-items:start;">
+
+      <!-- LEFT: Deposit form -->
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--t1);margin-bottom:12px;">ฝาก USDT</div>
+
+        <!-- Network selector -->
+        <div style="margin-bottom:14px;">
+          <div style="font-size:11px;color:var(--t3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;">เลือก Network</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <button class="network-btn selected" id="net-trc20" onclick="selNetwork('TRC20')" style="padding:12px;border-radius:var(--rl);">
+              <div style="font-size:14px;font-weight:700;">TRC20</div>
+              <div style="font-size:10px;color:var(--t4);margin-top:2px;">TRON Network</div>
+            </button>
+            <button class="network-btn" id="net-bep20" onclick="selNetwork('BEP20')" style="padding:12px;border-radius:var(--rl);">
+              <div style="font-size:14px;font-weight:700;">BEP20</div>
+              <div style="font-size:10px;color:var(--t4);margin-top:2px;">BSC Network</div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Wallet address display -->
+        <div style="background:var(--deep);border:1px solid var(--bdr);border-radius:var(--rl);padding:14px;margin-bottom:14px;">
+          <div style="font-size:10px;color:var(--t4);text-transform:uppercase;letter-spacing:.07em;font-weight:700;margin-bottom:8px;">Wallet Address</div>
+          <div id="dep-wallet-display" style="font-family:var(--fm);font-size:11px;color:var(--gold);word-break:break-all;margin-bottom:10px;line-height:1.6;">
+            ระบบจะแสดง Wallet Address หลังเลือก Network
+          </div>
+          <button class="btn btn-ghost btn-xs" onclick="copyDepWallet()" style="font-size:11px;">📋 คัดลอก Address</button>
+        </div>
+
+        <!-- Amount input -->
+        <div style="margin-bottom:12px;">
+          <div style="font-size:11px;color:var(--t3);margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;">จำนวน USDT <span style="color:var(--t4);font-weight:400;">(ขั้นต่ำ 10)</span></div>
+          <div class="input-addon">
+            <input type="number" id="dep-amount" placeholder="0.00" min="10" step="0.01" style="font-family:var(--fm);font-size:14px;font-weight:600;">
+            <span class="addon">USDT</span>
+          </div>
+        </div>
+
+        <!-- TX Hash -->
+        <div style="margin-bottom:14px;">
+          <div style="font-size:11px;color:var(--t3);margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;">Transaction Hash</div>
+          <input type="text" id="dep-txhash" placeholder="วางค่า TX Hash จาก Wallet..." style="width:100%;background:var(--card2);border:1px solid var(--bdr2);border-radius:var(--r);color:var(--t1);font-family:var(--fm);font-size:12px;padding:9px 12px;outline:none;">
+        </div>
+
+        <div class="info-box">ℹ️ โอน USDT ไปยัง Wallet Address ด้านบนก่อน จากนั้นกรอก TX Hash และจำนวนที่โอน แล้วกด Submit รอ Admin ยืนยัน 5–30 นาที</div>
+
+        <button class="btn btn-gold w100" onclick="submitDeposit()" style="padding:12px;font-size:14px;font-weight:700;">ส่งคำขอ Deposit</button>
+      </div>
+
+      <!-- RIGHT: History -->
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--t1);margin-bottom:12px;">ประวัติ Deposit</div>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead><tr>
+              <th>TX ID</th><th>Network</th><th>จำนวน</th><th>สถานะ</th><th>วันที่</th>
+            </tr></thead>
+            <tbody id="dep-tbody">
+              <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--t4);">ไม่มีรายการ</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRANSACTION HISTORY TAB -->
+  <div id="dash-transactions" class="tab-pane">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+      <div style="font-size:15px;font-weight:700;">ประวัติ<span style="color:var(--gold);">ธุรกรรม</span></div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <select id="tx-filter-type" onchange="renderTransactionHistory()"
+          style="background:var(--card2);border:1px solid var(--bdr2);border-radius:var(--r);color:var(--t2);font-family:var(--fb);font-size:12px;padding:6px 10px;cursor:pointer;outline:none;">
+          <option value="">ทุกประเภท</option>
+          <option value="Deposit">Deposit</option>
+          <option value="Withdraw">Withdraw</option>
+          <option value="Stake">Stake</option>
+          <option value="ET_OpenOrder">ET_OpenOrder</option>
+          <option value="ET_CloseOrder">ET_CloseOrder</option>
+          <option value="ET_APY">ET_APY</option>
+          <option value="ET_Commission">ET_Commission</option>
+        </select>
+        <button class="btn btn-ghost btn-sm" onclick="loadEtData()" style="font-size:12px;">↺ รีเฟรช</button>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr>
+          <th>TX ID</th><th>ประเภท</th><th>จำนวน (USDT)</th><th>ทิศทาง</th>
+          <th>Network</th><th>สถานะ</th><th>รายละเอียด</th><th>วันที่</th>
+        </tr></thead>
+        <tbody id="tx-tbody">
+          <tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--t4);">ไม่มีรายการ</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ MODAL: LOGIN / REGISTER ═══════ -->
+<div class="mover" id="m-auth" onclick="if(event.target===this)closeM('m-auth')">
+  <div class="modal">
+    <div class="mhead">
+      <span class="mtitle">🔐 Easy Trade — เข้าสู่ระบบ</span>
+      <button class="mclose" onclick="closeM('m-auth')">✕</button>
+    </div>
+    <div class="mbody">
+      <div style="display:flex;gap:4px;margin-bottom:16px;">
+        <button class="tab-btn active" id="auth-tab-login" onclick="swAuth('login')">เข้าสู่ระบบ</button>
+        <button class="tab-btn" id="auth-tab-reg" onclick="swAuth('register')">สมัครสมาชิก</button>
+      </div>
+      <!-- Login -->
+      <div id="auth-login">
+        <div class="fg"><label>Email</label><input type="email" id="li-email" placeholder="email@example.com"></div>
+        <div class="fg"><label>Password</label><input type="password" id="li-pass" placeholder="••••••••"></div>
+        <button class="btn btn-gold w100" onclick="doLogin()">เข้าสู่ระบบ</button>
+      </div>
+      <!-- Register -->
+      <div id="auth-reg" style="display:none;">
+        <div class="fg"><label>Email</label><input type="email" id="reg-email" placeholder="email@example.com"></div>
+        <div class="fg"><label>Password (อย่างน้อย 8 ตัว)</label><input type="password" id="reg-pass" placeholder="••••••••"></div>
+        <div class="fg"><label>ยืนยัน Password</label><input type="password" id="reg-pass2" placeholder="••••••••"></div>
+        <div class="fg"><label>Referral Code (ไม่บังคับ)</label><input type="text" id="ref-code" placeholder="TCC-XXXXX"></div>
+        <button class="btn btn-gold w100" onclick="doRegister()">สมัครสมาชิก</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ MODAL: TRADING (Order Form) ═══════ -->
+<div class="mover" id="m-trading" onclick="if(event.target===this)closeM('m-trading')">
+  <div class="modal" style="max-width:900px;width:95%;">
+    <div class="mhead">
+      <div>
+        <span class="mtitle" id="m-trading-title">📈 เทรด — สัญญา</span>
+        <span id="m-trading-sub" style="font-size:11px;color:var(--t4);margin-left:8px;font-family:var(--fm);"></span>
+      </div>
+      <button class="mclose" onclick="closeM('m-trading')">✕</button>
+    </div>
+    <div class="mbody" style="padding:0;">
+      <div style="display:grid;grid-template-columns:1fr 340px;min-height:500px;">
+
+        <!-- LEFT: Coin + Chart -->
+        <div style="padding:16px;border-right:1px solid var(--bdr);">
+          <!-- Budget bar -->
+          <div style="background:var(--card2);border-radius:var(--r);padding:10px 14px;margin-bottom:12px;">
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--t3);margin-bottom:5px;">
+              <span>ใช้ไป: <strong id="m-op-used" style="color:var(--gold);font-family:var(--fm);">0</strong> USDT</span>
+              <span>คงเหลือ: <strong id="m-op-remaining" style="color:var(--ok);font-family:var(--fm);">0</strong> USDT · <strong id="m-op-remaining-pct" style="font-family:var(--fm);">100%</strong></span>
+            </div>
+            <div class="budget-bar"><div class="budget-fill" id="m-op-budget-fill" style="width:0%"></div></div>
+            <div style="font-size:10px;color:var(--t4);margin-top:4px;">วงเงินรวม: <span id="m-op-total-budget" style="font-family:var(--fm);color:var(--t2);">—</span> USDT (10% ของ Stake)</div>
+          </div>
+          <!-- Coin List -->
+          <div style="background:var(--card);border:1px solid var(--bdr);border-radius:var(--rl);overflow:hidden;margin-bottom:12px;">
+            <div style="padding:8px 12px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;">เลือกเหรียญ</span>
+              <span style="font-size:10px;color:var(--ok);font-family:var(--fm);" id="m-coin-live-label"><span class="live-dot" style="width:5px;height:5px;"></span> Real-time</span>
+            </div>
+            <div id="m-coin-list" class="coin-list" style="padding:10px;"></div>
+          </div>
+          <!-- Chart -->
+          <div class="chart-wrap">
+            <div class="chart-header">
+              <span id="m-chart-coin-label" style="font-size:12px;font-weight:700;color:var(--t1);">BTC/USDT · 15m</span>
+              <div class="chart-tf-btns">
+                <button class="tf-btn active" onclick="mChangeTF(this,'1m')">1m</button>
+                <button class="tf-btn" onclick="mChangeTF(this,'5m')">5m</button>
+                <button class="tf-btn" onclick="mChangeTF(this,'15m')">15m</button>
+                <button class="tf-btn" onclick="mChangeTF(this,'1h')">1h</button>
+                <button class="tf-btn" onclick="mChangeTF(this,'4h')">4h</button>
+              </div>
+            </div>
+            <div style="position:relative;">
+              <canvas id="m-myChart" style="width:100%;height:200px;display:block;"></canvas>
+              <div id="m-chart-loading" style="display:none;position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(13,17,23,.7);font-size:12px;color:var(--t3);">กำลังโหลด...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Order Panel -->
+        <div style="padding:16px;">
+          <!-- Direction tabs -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;margin-bottom:14px;border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;">
+            <div id="m-dir-long-tab" onclick="mSelectDir('LONG')" style="padding:10px;text-align:center;cursor:pointer;border-bottom:2px solid var(--ok);background:rgba(14,203,129,.06);">
+              <div style="font-size:13px;font-weight:700;color:var(--ok);">LONG</div>
+              <div style="font-size:10px;color:var(--t4);">ซื้อ / ขึ้น</div>
+            </div>
+            <div id="m-dir-short-tab" onclick="mSelectDir('SHORT')" style="padding:10px;text-align:center;cursor:pointer;border-bottom:2px solid transparent;background:var(--card2);border-left:1px solid var(--bdr);">
+              <div style="font-size:13px;font-weight:700;color:var(--err);">SHORT</div>
+              <div style="font-size:10px;color:var(--t4);">ขาย / ลง</div>
+            </div>
+          </div>
+
+          <!-- Mark Price -->
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--bdr);">
+            <span style="font-size:11px;color:var(--t4);">Mark Price</span>
+            <span id="m-prev-entry" style="font-family:var(--fm);font-size:14px;font-weight:700;color:var(--t1);">—</span>
+          </div>
+
+          <!-- Amount -->
+          <div style="margin-bottom:10px;">
+            <div style="font-size:11px;color:var(--t3);margin-bottom:5px;">Order Amount (USDT)</div>
+            <div class="input-addon">
+              <input type="number" id="m-op-amount" placeholder="0.00" min="1" step="0.01" oninput="mUpdateOrderPreview()" style="font-family:var(--fm);font-size:14px;font-weight:600;">
+              <span class="addon">USDT</span>
+            </div>
+            <div id="m-op-amount-warn" style="display:none;font-size:11px;color:var(--err);margin-top:4px;"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:14px;">
+            <button class="btn btn-ghost btn-sm" style="font-family:var(--fm);font-size:11px;" onclick="mSetOrderPct(.25)">25%</button>
+            <button class="btn btn-ghost btn-sm" style="font-family:var(--fm);font-size:11px;" onclick="mSetOrderPct(.50)">50%</button>
+            <button class="btn btn-ghost btn-sm" style="font-family:var(--fm);font-size:11px;" onclick="mSetOrderPct(.75)">75%</button>
+            <button class="btn btn-gold btn-sm" style="font-family:var(--fm);font-size:11px;" onclick="mSetOrderPct(1)">MAX</button>
+          </div>
+
+          <!-- Leverage -->
+          <div style="margin-bottom:14px;">
+            <div style="font-size:11px;color:var(--t3);margin-bottom:6px;">Leverage</div>
+            <div style="display:flex;gap:5px;flex-wrap:wrap;" id="m-lev-row">
+              <button class="lev-btn" onclick="mSelLev(1)">1x</button>
+              <button class="lev-btn" onclick="mSelLev(5)">5x</button>
+              <button class="lev-btn" onclick="mSelLev(10)">10x</button>
+              <button class="lev-btn" onclick="mSelLev(20)">20x</button>
+              <button class="lev-btn selected" onclick="mSelLev(100)">100x ⚠</button>
+              <button class="lev-btn" onclick="mSelLev(150)">150x ⚠</button>
+            </div>
+            <div id="m-lev-warn" style="display:none;font-size:10px;color:var(--err);margin-top:5px;"></div>
+          </div>
+
+          <!-- Preview -->
+          <div id="m-op-preview" style="display:none;" class="preview-box" style="margin-bottom:12px;">
+            <div class="prev-row"><span class="pk">Order Amount</span><span class="pv" id="m-prev-amt">—</span></div>
+            <div class="prev-row"><span class="pk">Leverage</span><span class="pv" id="m-prev-lev">—</span></div>
+            <div class="prev-row"><span class="pk">Notional</span><span class="pv" id="m-prev-notional">—</span></div>
+            <div class="prev-row"><span class="pk">Entry Price</span><span class="pv" id="m-prev-entry2">—</span></div>
+          </div>
+
+          <!-- Budget exhausted -->
+          <div id="m-op-budget-exhausted" style="display:none;margin-bottom:12px;">
+            <div class="err-box" style="text-align:center;margin-bottom:0;">
+              <div style="font-weight:700;color:var(--err);margin-bottom:4px;">วงเงินเทรดถูกใช้หมดแล้ว</div>
+              <div style="font-size:11px;">ปิด Order ที่เปิดอยู่ หรือรอสัญญาครบกำหนด</div>
+            </div>
+          </div>
+          <div id="m-op-submit-area">
+            <button class="btn btn-ok w100" id="m-btn-open-order" onclick="mSubmitOpenOrder()" style="padding:12px;font-size:14px;font-weight:700;">เปิด Order</button>
+          </div>
+
+          <!-- Contract countdown -->
+          <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--bdr);display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:10px;color:var(--t4);">ครบสัญญาใน</span>
+            <div id="m-ct-countdown" class="cd-wrap" style="font-size:11px;"></div>
+          </div>
+
+          <!-- Open Positions of this contract -->
+          <div style="margin-top:14px;border-top:1px solid var(--bdr);padding-top:12px;">
+            <div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">Open Positions ของสัญญานี้</div>
+            <div id="m-positions-mini" style="max-height:160px;overflow-y:auto;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ MODAL: STAKE ═══════ -->
+<div class="mover" id="m-stake" onclick="if(event.target===this)closeM('m-stake')">
+  <div class="modal modal-lg">
+    <div class="mhead">
+      <span class="mtitle">🔒 ทำสัญญา EasyTrade</span>
+      <button class="mclose" onclick="closeM('m-stake')">✕</button>
+    </div>
+    <div class="mbody">
+      <!-- Progress steps -->
+      <div class="steps" style="margin-bottom:20px;">
+        <div class="step-dot active" id="st-dot-1">1</div>
+        <div class="step-line" id="st-line-1"></div>
+        <div class="step-dot" id="st-dot-2">2</div>
+        <div class="step-line" id="st-line-2"></div>
+        <div class="step-dot" id="st-dot-3">3</div>
+      </div>
+
+      <!-- Step 1: เลือก Plan -->
+      <div id="stake-step-1">
+        <div style="font-size:12px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px;">เลือกระยะเวลา</div>
+        <div class="plan-grid" id="plan-grid-container"></div>
+        <div style="margin-top:16px;">
+          <div style="font-size:11px;color:var(--t3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;">จำนวน Stake (USDT)</div>
+          <div class="input-addon">
+            <input type="number" id="stake-amount" placeholder="ขั้นต่ำ 50 USDT" min="50" step="1" oninput="updateStakePreview()" style="font-family:var(--fm);font-size:15px;font-weight:700;">
+            <span class="addon">USDT</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:6px;">
+            <button class="btn btn-ghost btn-sm" style="font-family:var(--fm);font-size:11px;" onclick="setStakeAmt(100)">100</button>
+            <button class="btn btn-ghost btn-sm" style="font-family:var(--fm);font-size:11px;" onclick="setStakeAmt(500)">500</button>
+            <button class="btn btn-ghost btn-sm" style="font-family:var(--fm);font-size:11px;" onclick="setStakeAmt(1000)">1,000</button>
+            <button class="btn btn-gold btn-sm" style="font-family:var(--fm);font-size:11px;" onclick="setStakeMax()">MAX</button>
+          </div>
+          <div style="font-size:11px;color:var(--t3);margin-top:6px;">ยอดกระเป๋าหลัก: <span id="stake-avail" style="font-family:var(--fm);color:var(--t1);">0.00 USDT</span></div>
+        </div>
+        <!-- Preview -->
+        <div id="stake-preview" style="display:none;" class="preview-box" style="margin-top:12px;">
+          <div class="prev-row"><span class="pk">ยอด Stake</span><span class="pv" id="sp-amount">—</span></div>
+          <div class="prev-row"><span class="pk">ระยะเวลา</span><span class="pv" id="sp-plan">—</span></div>
+          <div class="prev-row"><span class="pk">APY ต่อปี</span><span class="pv" id="sp-apy" style="color:var(--ok);">—</span></div>
+          <div class="prev-row"><span class="pk">วงเงินเทรด (10%)</span><span class="pv" id="sp-budget" style="color:var(--gold);">—</span></div>
+          <div class="prev-row"><span class="pk">ประมาณ APY/เดือน</span><span class="pv" id="sp-monthly" style="color:var(--ok);">—</span></div>
+        </div>
+        <div class="warn-box" style="margin-top:12px;">⚠️ ยอด Stake จะถูกล็อคจนครบกำหนดสัญญา ไม่สามารถถอนได้ก่อนครบกำหนด</div>
+        <button class="btn btn-gold w100" style="margin-top:4px;padding:12px;font-size:14px;" onclick="goStakeStep(2)">ถัดไป →</button>
+      </div>
+
+      <!-- Step 2: ยืนยัน -->
+      <div id="stake-step-2" style="display:none;">
+        <div style="font-size:12px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px;">ยืนยันข้อมูลสัญญา</div>
+        <div class="preview-box">
+          <div class="prev-row"><span class="pk">ยอด Stake</span><span class="pv" id="confirm-amount">—</span></div>
+          <div class="prev-row"><span class="pk">Plan</span><span class="pv" id="confirm-plan">—</span></div>
+          <div class="prev-row"><span class="pk">APY</span><span class="pv" id="confirm-apy" style="color:var(--ok);">—</span></div>
+          <div class="prev-row"><span class="pk">วงเงินเทรด</span><span class="pv" id="confirm-budget" style="color:var(--gold);">—</span></div>
+          <div class="prev-row"><span class="pk">วันเริ่ม</span><span class="pv" id="confirm-start">—</span></div>
+          <div class="prev-row"><span class="pk">วันสิ้นสุด</span><span class="pv" id="confirm-end">—</span></div>
+        </div>
+        <div class="info-box" style="margin-top:12px;">ℹ️ กด "ยืนยัน" เพื่อหักยอด <strong id="confirm-amount2">—</strong> จากกระเป๋าหลักและเริ่มสัญญา</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;">
+          <button class="btn btn-ghost w100" onclick="goStakeStep(1)">← ย้อนกลับ</button>
+          <button class="btn btn-gold w100" style="padding:12px;" id="btn-confirm-stake" onclick="submitStake()">✅ ยืนยันทำสัญญา</button>
+        </div>
+      </div>
+
+      <!-- Step 3: สำเร็จ -->
+      <div id="stake-step-3" style="display:none;text-align:center;padding:20px 0;">
+        <div style="width:56px;height:56px;border-radius:50%;background:rgba(14,203,129,.1);border:2px solid var(--ok);display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 16px;">✅</div>
+        <div style="font-size:16px;font-weight:700;margin-bottom:8px;color:var(--ok);">ทำสัญญาสำเร็จ!</div>
+        <p style="font-size:13px;color:var(--t3);line-height:1.7;margin-bottom:20px;">สัญญาเทรดของคุณเริ่มต้นแล้ว<br>วงเงินเทรดพร้อมใช้งานทันที</p>
+        <button class="btn btn-gold" onclick="closeM('m-stake');switchDashTab('open-position',document.querySelectorAll('.tab-btn')[1])">เปิด Order เลย →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ MODAL: CLOSE ORDER CONFIRM ═══════ -->
+<div class="mover" id="m-close-order" onclick="if(event.target===this)closeM('m-close-order')">
+  <div class="modal">
+    <div class="mhead">
+      <span class="mtitle">❌ ปิด Order</span>
+      <button class="mclose" onclick="closeM('m-close-order')">✕</button>
+    </div>
+    <div class="mbody">
+      <div class="warn-box">⚠️ ต้องการปิด Order นี้? P/L จะถูก Realize และ Budget จะคืนมา</div>
+      <div class="card" style="margin-bottom:14px;">
+        <div class="stat-row"><span class="stat-key">เหรียญ</span><span class="stat-val" id="close-coin">—</span></div>
+        <div class="stat-row"><span class="stat-key">ทิศทาง</span><span class="stat-val" id="close-dir">—</span></div>
+        <div class="stat-row"><span class="stat-key">Entry Price</span><span class="stat-val" id="close-entry">—</span></div>
+        <div class="stat-row"><span class="stat-key">Exit Price (Mark)</span><span class="stat-val" id="close-exit">—</span></div>
+        <div class="stat-row"><span class="stat-key">Order Amount</span><span class="stat-val" id="close-amount">—</span></div>
+        <div class="stat-row"><span class="stat-key">Unrealized P/L</span><span class="stat-val" id="close-pnl">—</span></div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-ghost" onclick="closeM('m-close-order')" style="flex:1;">ยกเลิก</button>
+        <button class="btn btn-err" onclick="confirmCloseOrder()" style="flex:2;">❌ ยืนยันปิด Order</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ MODAL: AUTO LIQUIDATION NOTICE ═══════ -->
+<div class="mover" id="m-liq-notice">
+  <div class="modal" style="max-width:420px;">
+    <div class="mhead" style="background:rgba(246,70,93,.08);border-bottom:1px solid rgba(246,70,93,.2);">
+      <span class="mtitle" style="color:var(--err);">⚡ Position ถูก Liquidate</span>
+    </div>
+    <div class="mbody">
+      <!-- coin + direction -->
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <div style="width:44px;height:44px;border-radius:50%;background:rgba(246,70,93,.1);border:2px solid rgba(246,70,93,.3);display:flex;align-items:center;justify-content:center;font-size:20px;" id="liq-icon">⚡</div>
+        <div>
+          <div style="font-size:15px;font-weight:700;" id="liq-symbol">—</div>
+          <div style="font-size:12px;color:var(--t3);margin-top:2px;" id="liq-dir-badge">—</div>
+        </div>
+      </div>
+
+      <!-- รายละเอียด -->
+      <div class="card" style="margin-bottom:12px;">
+        <div class="stat-row"><span class="stat-key">Order Amount</span><span class="stat-val" id="liq-order-amt">—</span></div>
+        <div class="stat-row"><span class="stat-key">Entry Price</span><span class="stat-val" id="liq-entry">—</span></div>
+        <div class="stat-row"><span class="stat-key">Mark Price (ณ Liq)</span><span class="stat-val" id="liq-mark">—</span></div>
+        <div class="stat-row"><span class="stat-key">Liq. Price</span><span class="stat-val" style="color:var(--err);" id="liq-liqprice">—</span></div>
+        <div class="stat-row" style="border-top:1px solid var(--bdr);margin-top:8px;padding-top:8px;">
+          <span class="stat-key" style="font-weight:700;color:var(--t1);">ขาดทุน</span>
+          <span class="stat-val" style="color:var(--err);font-size:15px;" id="liq-loss">—</span>
+        </div>
+      </div>
+
+      <!-- ระบบรับผิดชอบ -->
+      <div style="background:rgba(14,203,129,.05);border:1px solid rgba(14,203,129,.15);border-radius:8px;padding:12px 14px;margin-bottom:12px;">
+        <div style="font-size:12px;font-weight:700;color:var(--ok);margin-bottom:6px;">🛡️ ระบบรับผิดชอบ Cross Margin</div>
+        <div style="font-size:12px;color:var(--t3);line-height:1.7;">
+          ระบบ EasyTrade รับผิดชอบส่วนขาดทุนที่เกิน Margin ตั้งต้น
+          โดยใช้ <strong style="color:var(--t1);">Cross Buffer</strong> จาก Stake ของสมาชิก
+          สูงสุด <strong style="color:var(--gold);" id="liq-cross-pool">—</strong> USDT (30% ของ Stake)
+        </div>
+        <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(14,203,129,.12);">
+          <div style="display:flex;justify-content:space-between;font-size:12px;">
+            <span style="color:var(--t3);">Margin ตั้งต้น</span>
+            <span style="font-family:var(--fm);color:var(--t1);" id="liq-init-margin">—</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:4px;">
+            <span style="color:var(--t3);">Cross Buffer ที่ใช้</span>
+            <span style="font-family:var(--fm);color:var(--err);" id="liq-cross-used">—</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:4px;font-weight:700;">
+            <span style="color:var(--t1);">ยอดหักจาก Stake รวม</span>
+            <span style="font-family:var(--fm);color:var(--err);" id="liq-total-deduct">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- เงื่อนไข Cross Margin -->
+      <div style="background:rgba(240,185,11,.04);border:1px solid rgba(240,185,11,.12);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:11px;color:var(--t3);line-height:1.8;">
+        <div style="font-weight:700;color:var(--gold);margin-bottom:4px;">📋 เงื่อนไข Cross Margin</div>
+        • วงเงินเปิด Order = <strong style="color:var(--t1);">10%</strong> ของ Stake<br>
+        • Cross Buffer = <strong style="color:var(--t1);">30%</strong> ของ Stake (ระบบรับผิดชอบ)<br>
+        • ขาดทุนสูงสุดต่อสัญญา = <strong style="color:var(--t1);">30%</strong> ของ Stake<br>
+        • หาก Position ถูก Liquidate ระบบจะปิด Order อัตโนมัติ<br>
+        • ยอดขาดทุนจะถูกหักจาก Stake และแจ้งผ่านระบบ
+      </div>
+
+      <button class="btn btn-gold" onclick="closeM('m-liq-notice')" style="width:100%;">รับทราบ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ MODAL: WITHDRAW ═══════ -->
+<div class="mover" id="m-withdraw" onclick="if(event.target===this)closeM('m-withdraw')">
+  <div class="modal">
+    <div class="mhead">
+      <span class="mtitle">↑ ถอน USDT</span>
+      <button class="mclose" onclick="closeM('m-withdraw')">✕</button>
+    </div>
+    <div class="mbody">
+      <div class="fg">
+        <label>Main Account Balance</label>
+        <div class="cval-sm tok" id="wd-bal-disp" style="padding:4px 0;">0.00 USDT</div>
+      </div>
+      <div class="fg">
+        <label>จำนวนที่ต้องการถอน</label>
+        <div class="input-addon">
+          <input type="number" id="wd-amount" placeholder="0.00" min="10">
+          <span class="addon">USDT</span>
+        </div>
+      </div>
+      <div class="fg">
+        <label>Network</label>
+        <select id="wd-network"><option value="TRC20">TRC20</option><option value="BEP20">BEP20</option></select>
+      </div>
+      <div class="fg">
+        <label>Wallet Address</label>
+        <input type="text" id="wd-address" placeholder="กรอก Wallet Address...">
+      </div>
+      <button class="btn btn-gold w100" onclick="submitWithdraw()">↑ ส่งคำขอถอน</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ MODAL: CONFIRM ═══════ -->
+<div class="mover" id="m-confirm">
+  <div class="modal" style="max-width:380px;">
+    <div class="mhead"><span class="mtitle" id="conf-title">ยืนยัน</span><button class="mclose" onclick="closeM('m-confirm')">✕</button></div>
+    <div class="mbody">
+      <div id="conf-body" style="margin-bottom:16px;font-size:14px;line-height:1.7;"></div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-ghost" onclick="closeM('m-confirm')" style="flex:1;">ยกเลิก</button>
+        <button class="btn btn-gold" id="conf-ok" style="flex:2;">ยืนยัน</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ TOAST + LOADER ═══════ -->
+<div id="_toast" style="position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;"></div>
+<div id="_load" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;">
+  <div style="background:var(--card);border:1px solid var(--bdr2);border-radius:var(--rl);padding:20px 28px;text-align:center;">
+    <div style="width:32px;height:32px;border:3px solid var(--bdr2);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px;"></div>
+    <div id="_load_msg" style="font-size:13px;color:var(--t2);">กำลังโหลด...</div>
+  </div>
+</div>
+<style>@keyframes spin{to{transform:rotate(360deg);}}</style>
+<!-- ═══════ SCRIPT ═══════ -->
+<script>
+// ─── CONFIG ───
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwctRGm_TE6zhyiHjRerb3p6JRS2bu9rleTnhFPv1CFrue_GvTXFa8VCIpdot5gDgk/exec';
+
+// ─── STATE ───
+let SESSION = null;
+let ET = {
+  _lastLoaded: 0,
+  contract: null,        // สัญญาที่เลือกอยู่ (active contract selected)
+  contracts: [],         // ✅ NEW: array ของทุกสัญญา active
+  positions: [],         // open orders
+  realizedHistory: [],  // closed orders
+  payoutHistory: [],    // APY+Commission paid
+  deposits: [],
+  allTransactions: [],  // ✅ NEW: all transactions
+  etSettings: { plans:{3:6,6:8,9:10,12:12}, commissionRate:0.40, payoutInterval:30, enabled:true, coins:['BTC','ETH','SOL','BNB'] }
+};
+
+// Mock coin prices (seed — จะถูก override โดย Hyperliquid API)
+let PRICES = { BTC:104500, ETH:2580, SOL:175, BNB:620 };
+let PREV_PRICES = {};
+let priceTimers = {};
+let positionRefreshTimer = null;
+let closingOrderId = null;
+let selectedPlan = null;
+let selectedCoin = null;
+let selectedDir = null;
+let selectedLeverage = 1;   // ✅ NEW: leverage
+let depositNetwork = 'TRC20';
+let chartTF = '15m';        // ✅ NEW: chart timeframe
+let chartInstance = null;   // ✅ NEW: chart.js instance
+let chartData = [];         // ✅ NEW: kline data
+
+// ─── API HELPERS ───
+async function apiGet(params) {
+  const url = new URL(GAS_URL);
+  Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+  const res = await fetch(url.toString(), { method:'GET', redirect:'follow' });
+  const text = await res.text();
+  try { return JSON.parse(text); } catch(e) { throw new Error('Server response ไม่ใช่ JSON'); }
+}
+async function apiPost(body) {
+  const res = await fetch(GAS_URL, {
+    method:'POST', redirect:'follow',
+    headers: { 'Content-Type':'text/plain;charset=utf-8' },
+    body: JSON.stringify(body)
+  });
+  return res.json();
+}
+
+// ─── PAGE NAV ───
+function goPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if (id === 'dashboard') initDashboard();
+}
+function goBack() { window.location.href = 'index.html'; }
+
+// ─── AUTH ───
+function swAuth(tab) {
+  document.getElementById('auth-tab-login').classList.toggle('active', tab==='login');
+  document.getElementById('auth-tab-reg').classList.toggle('active', tab==='register');
+  document.getElementById('auth-login').style.display = tab==='login' ? '' : 'none';
+  document.getElementById('auth-reg').style.display = tab==='register' ? '' : 'none';
+}
+
+async function doLogin() {
+  const email = document.getElementById('li-email').value.trim();
+  const pass  = document.getElementById('li-pass').value;
+  if (!email||!pass) { showToast('กรุณากรอก Email และ Password','warn'); return; }
+  showLoad('กำลังเข้าสู่ระบบ...');
+  try {
+    const res = await apiPost({ action:'login', email, password:pass });
+    hideLoad();
+    if (res.success) {
+      saveSession(res);
+      closeM('m-auth');
+      showToast('✅ เข้าสู่ระบบสำเร็จ!');
+      goPage('dashboard');
+    } else showToast(res.error||'เข้าสู่ระบบไม่สำเร็จ','err');
+  } catch(e) { hideLoad(); showToast('❌ เชื่อมต่อ server ไม่ได้','err'); }
+}
+
+async function doRegister() {
+  const email = document.getElementById('reg-email').value.trim();
+  const pass  = document.getElementById('reg-pass').value;
+  const pass2 = document.getElementById('reg-pass2').value;
+  const ref   = document.getElementById('ref-code').value.trim();
+  if (!email||!pass) { showToast('กรุณากรอก Email และ Password','warn'); return; }
+  if (pass !== pass2) { showToast('Password ไม่ตรงกัน','err'); return; }
+  if (pass.length < 8) { showToast('Password ต้องมีอย่างน้อย 8 ตัว','warn'); return; }
+  showLoad('กำลังสมัครสมาชิก...');
+  try {
+    const res = await apiPost({ action:'register', email, password:pass, referral_code:ref });
+    hideLoad();
+    if (res.success) {
+      showToast('✅ สมัครสำเร็จ! กรุณาเข้าสู่ระบบ');
+      swAuth('login');
+    } else showToast(res.error||'สมัครไม่สำเร็จ','err');
+  } catch(e) { hideLoad(); showToast('❌ เชื่อมต่อ server ไม่ได้','err'); }
+}
+
+function doLogout() {
+  SESSION = null;
+  try { sessionStorage.removeItem('et_session'); } catch(e){}
+  updateNavUI();
+  goPage('home');
+  showToast('👋 ออกจากระบบแล้ว');
+}
+
+function saveSession(data) {
+  SESSION = data;
+  try { sessionStorage.setItem('et_session', JSON.stringify(data)); } catch(e){}
+  updateNavUI();
+}
+function loadSession() {
+  try {
+    const s = sessionStorage.getItem('et_session');
+    if (s) { SESSION = JSON.parse(s); updateNavUI(); }
+  } catch(e){}
+}
+function updateNavUI() {
+  const logBtn = document.getElementById('btn-login');
+  const logoutBtn = document.getElementById('btn-logout');
+  const balWrap = document.getElementById('nav-bal');
+  if (SESSION) {
+    logBtn.style.display = 'none';
+    logoutBtn.style.display = '';
+    balWrap.style.display = '';
+    document.getElementById('nav-bal-num').textContent = 
+      Number(SESSION.customer_wallet_usdt||0).toLocaleString('th',{minimumFractionDigits:2});
+  } else {
+    logBtn.style.display = '';
+    logoutBtn.style.display = 'none';
+    balWrap.style.display = 'none';
+  }
+}
+function requireLogin(cb) {
+  if (SESSION) cb();
+  else openM('m-auth');
+}
+function requireBalance(cb) {
+  if (!SESSION) { openM('m-auth'); return; }
+  const bal = Number(SESSION.customer_wallet_usdt||0);
+  if (bal < 50) { showToast('ยอด Main Account ไม่พอ (ต้องการขั้นต่ำ 50 USDT)','warn'); return; }
+  cb();
+}
+
+// ─── HYPERLIQUID PRICE ENGINE ───
+const HL_API = 'https://api.hyperliquid.xyz/info';
+let COIN_MAP = { BTC:'BTC', ETH:'ETH', SOL:'SOL', BNB:'BNB' }; // ✅ let ไม่ใช่ const เพื่อให้ update ได้
+
+function updateCoinMap() {
+  // สร้าง COIN_MAP จาก et_coins ของ Admin
+  const coins = ET.etSettings.coins || ['BTC','ETH','SOL','BNB'];
+  coins.forEach(c => { if (!COIN_MAP[c]) COIN_MAP[c] = c; PRICES[c] = PRICES[c] || 0; });
+}
+let priceSourceStatus = 'connecting'; // 'live' | 'fallback'
+
+async function fetchHLPrices() {
+  try {
+    const res = await fetch(HL_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'allMids' })
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    // data = { "BTC": "104523.5", "ETH": "2581.2", ... }
+    let updated = false;
+    Object.keys(COIN_MAP).forEach(c => {
+      const raw = data[COIN_MAP[c]];
+      if (raw && !isNaN(parseFloat(raw))) {
+        PRICES[c] = parseFloat(parseFloat(raw).toFixed(2));
+        updated = true;
+      }
+    });
+    if (updated) {
+      priceSourceStatus = 'live';
+      updatePriceStatusBadge();
+    }
+    return updated;
+  } catch(e) {
+    // fallback: ±0.3% drift จาก ราคาปัจจุบัน
+    Object.keys(PRICES).forEach(c => {
+      const drift = (Math.random() - 0.5) * 0.006;
+      PRICES[c] = parseFloat((PRICES[c] * (1 + drift)).toFixed(2));
+    });
+    priceSourceStatus = 'fallback';
+    updatePriceStatusBadge();
+    return false;
+  }
+}
+
+function updatePriceStatusBadge() {
+  const badge = document.getElementById('price-source-badge');
+  if (!badge) return;
+  if (priceSourceStatus === 'live') {
+    badge.innerHTML = '<span class="live-dot"></span> Hyperliquid Live';
+    badge.style.color = 'var(--ok)';
+  } else {
+    badge.innerHTML = '⚡ Estimated';
+    badge.style.color = 'var(--warn)';
+  }
+}
+
+function startPriceEngine() {
+  clearInterval(priceTimers.engine);
+  // ดึงราคาทันที แล้วทุก 3 วินาที
+  fetchHLPrices().then(() => {
+    updateCoinListPrices();
+    updateTickerStrip();
+    updatePositionsPnl();
+    updateOrderPreview();
+  });
+  priceTimers.engine = setInterval(async () => {
+    await fetchHLPrices();
+    updateCoinListPrices();
+    updateTickerStrip();
+    updatePositionsPnl();
+    updateOrderPreview();
+  }, 3000);
+}
+function updateCoinListPrices() {
+  document.querySelectorAll('.coin-price[data-coin]').forEach(el => {
+    const coin = el.dataset.coin;
+    if (PRICES[coin]) el.textContent = '$' + PRICES[coin].toLocaleString();
+  });
+}
+
+// ── TICKER STRIP: แสดงราคา + % change จาก Hyperliquid ──
+function updateTickerStrip() {
+  const coins = Object.keys(PRICES);
+  coins.forEach(c => {
+    const price = PRICES[c];
+    if (!price) return;
+    const prev  = PREV_PRICES[c] || price;
+    const chgPct = prev ? ((price - prev) / prev * 100) : 0;
+    const isPos  = chgPct >= 0;
+    const fmtPrice = price >= 10000
+      ? price.toLocaleString('en', {maximumFractionDigits:1})
+      : price >= 100
+        ? price.toFixed(2)
+        : price.toFixed(price < 1 ? 5 : 3);
+
+    document.querySelectorAll(`[data-ticker="${c}"]`).forEach(el => {
+      el.textContent = '$' + fmtPrice;
+    });
+    document.querySelectorAll(`[data-ticker-chg="${c}"]`).forEach(el => {
+      el.textContent = (isPos ? '+' : '') + chgPct.toFixed(2) + '%';
+      el.className = 'ticker-chg ' + (isPos ? 'pos' : 'neg');
+    });
+  });
+  Object.assign(PREV_PRICES, {...PRICES});
+}
+
+// ─── DASHBOARD INIT ───
+async function initDashboard() {
+  if (!SESSION) { goPage('home'); openM('m-auth'); return; }
+  // ✅ FIX: โหลดข้อมูลครั้งแรกเท่านั้น หรือถ้าผ่านมากกว่า 30 วินาทีแล้ว
+  const now = Date.now();
+  if (!ET._lastLoaded || (now - ET._lastLoaded) > 30000) {
+    loadEtData();
+  } else {
+    renderAll();
+  }
+  startPriceEngine();
+  // auto-refresh positions every 5s
+  clearInterval(positionRefreshTimer);
+  positionRefreshTimer = setInterval(() => {
+    updatePositionsPnl();
+    updateOverviewPnl();
+  }, 5000);
+}
+
+// ─── LOAD ET DATA (from Google Sheets) ───
+async function loadEtData() {
+  showLoad('กำลังโหลดข้อมูล...');
+  try {
+    // ✅ ใช้ getETMemberData endpoint เดียว — เร็วกว่า 6x และได้ allTransactions ด้วย
+    const d = await apiGet({ action:'getETMemberData', member_id: SESSION.member_id });
+
+    if (d && !d.error) {
+      // Sync session balance
+      if (d.member) {
+        SESSION.customer_wallet_usdt = d.member.customer_wallet_usdt;
+        saveSession(SESSION);
+      }
+
+      ET.contracts       = Array.isArray(d.contracts)        ? d.contracts        : (d.contract ? [d.contract] : []);
+      ET.contract        = ET.contracts[0] || null; // default = สัญญาล่าสุด
+      ET.positions       = Array.isArray(d.positions)       ? d.positions       : [];
+      ET.realizedHistory = Array.isArray(d.realizedHistory) ? d.realizedHistory : [];
+      ET.payoutHistory   = Array.isArray(d.payoutHistory)   ? d.payoutHistory   : [];
+      ET.deposits        = Array.isArray(d.deposits)        ? d.deposits        : [];
+      // ✅ allTransactions จาก GAS (เรียงล่าสุดก่อนแล้ว)
+      ET.allTransactions = Array.isArray(d.allTransactions) ? d.allTransactions : [];
+
+      // โหลด ET_Settings
+      const cfg = d.settings || {};
+      Object.keys(cfg).forEach(k => {
+        const v = cfg[k];
+        const apyM = k.match(/^apy_(\d+)m$/);
+        if (apyM) ET.etSettings.plans[Number(apyM[1])] = Number(v);
+        if (k === 'commission_rate') ET.etSettings.commissionRate = Number(v)||0.40;
+        if (k === 'payout_interval') ET.etSettings.payoutInterval = Number(v)||30;
+        if (k === 'et_coins') {
+          try { ET.etSettings.coins = JSON.parse(v); } catch(e) {}
+        }
+      });
+      updateCoinMap();
+    } else {
+      // Fallback: โหลดแยก sheet (กรณี GAS เวอร์ชันเก่า)
+      await loadEtDataFallback();
+    }
+
+    hideLoad();
+    ET._lastLoaded = Date.now();
+    renderAll();
+  } catch(e) {
+    hideLoad();
+    showToast('⚠️ โหลดข้อมูลไม่สำเร็จ — ใช้ข้อมูล Offline','warn');
+    renderAll();
+  }
+}
+
+// Fallback สำหรับ GAS เวอร์ชันเก่าที่ยังไม่มี getETMemberData
+async function loadEtDataFallback() {
+  const contractsArr = await apiGet({ action:'read', sheet:'ET_Contracts' });
+  const allActive = Array.isArray(contractsArr)
+    ? contractsArr.filter(c => c.member_id === SESSION.member_id && c.status === 'active')
+        .sort((a,b) => new Date(b.created_at||0) - new Date(a.created_at||0))
+    : [];
+  ET.contracts = allActive;
+  ET.contract  = allActive[0] || null;
+
+  const positions = await apiGet({ action:'read', sheet:'ET_Positions' });
+  ET.positions = Array.isArray(positions)
+    ? positions.filter(p => p.member_id === SESSION.member_id && p.status === 'open') : [];
+
+  const realized = await apiGet({ action:'read', sheet:'ET_Realized' });
+  ET.realizedHistory = Array.isArray(realized)
+    ? realized.filter(r => r.member_id === SESSION.member_id) : [];
+
+  const payouts = await apiGet({ action:'read', sheet:'ET_Payouts' });
+  ET.payoutHistory = Array.isArray(payouts)
+    ? payouts.filter(p => p.member_id === SESSION.member_id) : [];
+
+  const txs = await apiGet({ action:'read', sheet:'Transactions' });
+  ET.deposits = Array.isArray(txs)
+    ? txs.filter(t => t.member_id === SESSION.member_id && t.tx_type === 'Deposit') : [];
+  ET.allTransactions = Array.isArray(txs)
+    ? txs.filter(t => t.member_id === SESSION.member_id)
+         .sort((a,b) => new Date(b.created_at||0) - new Date(a.created_at||0))
+    : [];
+
+  const settings = await apiGet({ action:'read', sheet:'ET_Settings' });
+  if (Array.isArray(settings)) {
+    settings.forEach(r => {
+      const apyM = r.config_key && r.config_key.match(/^apy_(\d+)m$/);
+      if (apyM) ET.etSettings.plans[Number(apyM[1])] = Number(r.config_value);
+      if (r.config_key === 'commission_rate') ET.etSettings.commissionRate = Number(r.config_value)||0.40;
+      if (r.config_key === 'payout_interval') ET.etSettings.payoutInterval = Number(r.config_value)||30;
+      if (r.config_key === 'et_coins') {
+        try { ET.etSettings.coins = JSON.parse(r.config_value); } catch(e) {}
+      }
+    });
+    updateCoinMap();
+  }
+
+  const mem = await apiGet({ action:'memberData', member_id: SESSION.member_id });
+  if (mem && !mem.error) {
+    SESSION.customer_wallet_usdt = mem.customer_wallet_usdt;
+    saveSession(SESSION);
+  }
+}
+
+function renderAll() {
+  renderOverview();
+  renderOpenOrderForm();
+  renderContractCards();   // ✅ NEW: contract cards view
+  renderPositions();
+  renderRealized();
+  renderPayoutHistory();
+  renderDeposits();
+  renderTransactionHistory();
+}
+
+// ─── OVERVIEW ───
+function renderOverview() {
+  const mainBal = Number(SESSION?.customer_wallet_usdt||0);
+  document.getElementById('ov-main-bal').innerHTML = 
+    mainBal.toLocaleString('th',{minimumFractionDigits:2}) + ' <span style="font-size:14px;color:var(--t3);">USDT</span>';
+
+  const contractPanel = document.getElementById('ov-contract-panel');
+  const noContract = document.getElementById('ov-no-contract');
+
+  if (ET.contracts.length > 0) {
+    contractPanel.style.display = '';
+    noContract.style.display = 'none';
+
+    // ✅ แสดงทุกสัญญา — คำนวณ Budget รวม
+    const totalStaked      = ET.contracts.reduce((s,c)=>s+Number(c.stake_amount||0), 0);
+    const totalBudget      = ET.contracts.reduce((s,c)=>s+Number(c.order_budget||Number(c.stake_amount||0)*0.10), 0);
+    const usedBudget       = ET.positions.reduce((s,p)=>s+Number(p.order_amount||0), 0);
+
+    // แสดงสัญญาหลัก (ล่าสุด)
+    const c = ET.contracts[0];
+    document.getElementById('ov-staked').innerHTML = 
+      totalStaked.toLocaleString('th',{minimumFractionDigits:2}) + ' <span style="font-size:14px;color:var(--t3);">USDT</span>';
+    document.getElementById('ov-unlock-date').textContent = (c.end_date||'').slice(0,10);
+    document.getElementById('ov-plan').textContent = c.plan_months + ' เดือน · ' + (ET.etSettings.plans[c.plan_months]||0) + '% APY';
+    document.getElementById('ov-budget-used').textContent = usedBudget.toFixed(2);
+    document.getElementById('ov-budget-total').textContent = totalBudget.toFixed(2);
+
+    // ✅ แสดงจำนวนสัญญา
+    const contractCountEl = document.getElementById('ov-contract-count');
+    if (contractCountEl) contractCountEl.textContent = ET.contracts.length > 1 ? ' (' + ET.contracts.length + ' สัญญา)' : '';
+
+    const addBtn = contractPanel.querySelector('.btn-gold');
+    if (addBtn) addBtn.style.display = mainBal >= 50 ? '' : 'none';
+  } else {
+    contractPanel.style.display = 'none';
+    noContract.style.display = '';
+  }
+
+  // ใช้สัญญาล่าสุดสำหรับ countdown/APY
+  const c = ET.contracts[0] || null;
+
+  updateOverviewPnl();
+  // ── Countdown to next payout (คำนวณจาก payout_interval) ──
+  const now = new Date();
+  const intervalDays = Number(ET.etSettings.payoutInterval || 30);
+
+  let nextPayoutDate;
+  if (ET.payoutHistory.length > 0) {
+    // คำนวณจากวันที่จ่ายล่าสุด + interval
+    const lastPaid = ET.payoutHistory
+      .filter(p => p.paid_at || p.created_at)
+      .map(p => new Date(p.paid_at || p.created_at))
+      .sort((a,b) => b - a)[0];
+    if (lastPaid && !isNaN(lastPaid)) {
+      nextPayoutDate = new Date(lastPaid.getTime() + intervalDays * 864e5);
+      // ถ้าวันนั้นผ่านไปแล้ว ให้คำนวณรอบถัดไปที่ยังมาไม่ถึง
+      while (nextPayoutDate <= now) {
+        nextPayoutDate = new Date(nextPayoutDate.getTime() + intervalDays * 864e5);
+      }
+    }
+  }
+  // fallback: ถ้าไม่มีประวัติ → นับจากวันเริ่ม contract
+  if (!nextPayoutDate && c && c.start_date) {
+    const startDate = new Date(c.start_date);
+    nextPayoutDate = new Date(startDate.getTime() + intervalDays * 864e5);
+    while (nextPayoutDate <= now) {
+      nextPayoutDate = new Date(nextPayoutDate.getTime() + intervalDays * 864e5);
+    }
+  }
+  // fallback สุดท้าย: วันที่ 1 ของเดือนถัดไป
+  if (!nextPayoutDate) {
+    nextPayoutDate = new Date(now.getFullYear(), now.getMonth()+1, 1, 0, 0, 0);
+  }
+
+  startCD('ov-cd', nextPayoutDate.getTime());
+
+  // แสดงวันที่จ่ายถัดไป
+  const nextDateEl = document.getElementById('ov-next-payout-date');
+  if (nextDateEl) {
+    nextDateEl.textContent = nextPayoutDate.toLocaleDateString('th-TH', {day:'numeric',month:'short',year:'numeric'});
+  }
+
+  // Estimated next payout
+  if (c) {
+    const stake = Number(c.stake_amount||0);
+    const apy = ET.etSettings.plans[Number(c.plan_months)] || 6;
+    const intervalDays = Number(ET.etSettings.payoutInterval || 30);
+    const dailyAPY = (stake * apy/100) / 365;
+    const payoutAPY = dailyAPY * intervalDays;
+    // ✅ FIX: ใช้ realized_pnl
+    const realizedPL = ET.realizedHistory.reduce((s,r)=>s+Number(r.realized_pnl??r.pnl??0),0);
+    const commission = realizedPL > 0 ? realizedPL * ET.etSettings.commissionRate : 0;
+    document.getElementById('ov-next-payout').textContent = 
+      (payoutAPY + commission).toLocaleString('th',{minimumFractionDigits:2}) + ' USDT';
+  }
+
+  // APY + Commission paid totals
+  const apyPaid = ET.payoutHistory.reduce((s,p)=>s+Number(p.apy_amount||0),0);
+  const commPaid = ET.payoutHistory.reduce((s,p)=>s+Number(p.commission_amount||0),0);
+  document.getElementById('ov-apy-paid').textContent = apyPaid.toLocaleString('th',{minimumFractionDigits:2}) + ' USDT';
+  document.getElementById('ov-comm-paid').textContent = commPaid.toLocaleString('th',{minimumFractionDigits:2}) + ' USDT';
+
+  // ── Overview: mini positions ──
+  const cont = document.getElementById('ov-positions-list');
+  const posCount = document.getElementById('ov-pos-count');
+  if (posCount) posCount.textContent = '(' + ET.positions.length + ')';
+  if (!cont) return;
+  if (!ET.positions.length) {
+    cont.innerHTML = '<div class="empty-state" style="padding:24px;"><div class="es-ico" style="font-size:1.8rem;">📭</div><p style="font-size:12px;">ไม่มี Open Position</p></div>';
+  } else {
+    const show = ET.positions.slice(0,4);
+    cont.innerHTML = `
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1.5fr;gap:0;padding:8px 16px;background:var(--card2);border:1px solid var(--bdr);border-radius:var(--r) var(--r) 0 0;font-size:10px;color:var(--t4);text-transform:uppercase;letter-spacing:.07em;font-weight:700;">
+        <span>Symbol</span><span>Entry</span><span>Mark</span><span>Amount</span><span style="text-align:right;">P/L</span>
+      </div>
+      <div style="border:1px solid var(--bdr);border-top:none;border-radius:0 0 var(--r) var(--r);">
+        ${show.map(p => renderPosCard(p, true)).join('')}
+      </div>
+      ${ET.positions.length > 4 ? `<div style="text-align:center;padding:8px;font-size:12px;color:var(--t4);">และอีก ${ET.positions.length-4} position · <span style="color:var(--gold);cursor:pointer;" onclick="switchDashTab('positions',document.querySelectorAll('.tab-btn')[2])">ดูทั้งหมด</span></div>` : ''}
+    `;
+  }
+}
+
+function updateOverviewPnl() {
+  let unrealized = 0, realized = 0;
+  ET.positions.forEach(p => { unrealized += calcPnl(p); });
+  // ✅ FIX: ใช้ realized_pnl (ชื่อ field จริงใน GAS) พร้อม fallback r.pnl
+  realized = ET.realizedHistory.reduce((s,r)=>s+Number(r.realized_pnl??r.pnl??0),0);
+  const uEl = document.getElementById('ov-unrealized');
+  const rEl = document.getElementById('ov-realized');
+  uEl.textContent = unrealized.toLocaleString('th',{minimumFractionDigits:2}) + ' USDT';
+  uEl.className = 'cval-sm ' + (unrealized>=0?'tok':'terr');
+  rEl.textContent = realized.toLocaleString('th',{minimumFractionDigits:2}) + ' USDT';
+  rEl.className = 'cval-sm ' + (realized>=0?'tok':'terr');
+}
+
+// ─── เลือกสัญญาจาก dropdown ───
+function selectContract(contractId) {
+  const found = ET.contracts.find(c => c.contract_id === contractId);
+  if (found) { ET.contract = found; renderOpenOrderForm(); }
+}
+
+// ─── OPEN ORDER FORM ───
+function renderOpenOrderForm() {
+  const form     = document.getElementById('op-form');
+  const stakeCta = document.getElementById('op-stake-cta');
+
+  // ── ไม่มีสัญญา → แสดง CTA ทำสัญญา ──
+  if (!ET.contracts.length) {
+    form.style.display = 'none';
+    stakeCta.style.display = '';
+    return;
+  }
+  form.style.display = '';
+  stakeCta.style.display = 'none';
+
+  // ✅ ถ้ายังไม่มี active contract → ใช้อันแรก
+  if (!ET.contract || !ET.contracts.find(c => c.contract_id === ET.contract.contract_id)) {
+    ET.contract = ET.contracts[0];
+  }
+
+  // ✅ Render dropdown เลือกสัญญา (แสดงเสมอ)
+  const selectorWrap = document.getElementById('ct-selector-wrap');
+  if (selectorWrap) {
+    selectorWrap.style.display = '';
+    const sel = document.getElementById('ct-selector');
+    if (sel) {
+      sel.innerHTML = ET.contracts.map((c,i) =>
+        `<option value="${c.contract_id}" ${c.contract_id===ET.contract?.contract_id?'selected':''}>
+          สัญญา ${i+1}: Stake ${Number(c.stake_amount||0).toFixed(2)} USDT · ${c.plan_months}เดือน · ${(c.apy_rate||0)}% APY
+        </option>`
+      ).join('');
+    }
+  }
+
+  const c = ET.contract;
+
+  // ── ข้อมูลสัญญา ──
+  const stake       = Number(c.stake_amount||0);
+  const planMonths  = Number(c.plan_months||0);
+  const apyRate     = Number(c.apy_rate||0);
+  const startDate   = (c.start_date||'').slice(0,10);
+  const endDate     = (c.end_date||'').slice(0,10);
+  const totalBudget = Number(c.order_budget || stake * 0.10);
+  const usedBudget  = ET.positions
+    .filter(p => String(p.contract_id||'') === String(c.contract_id||''))
+    .reduce((s,p)=>s+Number(p.order_amount||0), 0);
+  const remaining   = Math.max(totalBudget - usedBudget, 0);
+  const pct         = totalBudget > 0 ? Math.min((usedBudget/totalBudget)*100, 100) : 0;
+
+  // ── ซิงค์ element ใหม่ ──
+  const ctRem = document.getElementById('ct-remaining');
+  if (ctRem) ctRem.textContent = remaining.toFixed(2) + ' USDT';
+  const totalBudgetEl = document.getElementById('op-total-budget');
+  if (totalBudgetEl) totalBudgetEl.textContent = totalBudget.toFixed(2) + ' USDT';
+  const ctCountdown = document.getElementById('ct-countdown');
+  if (ctCountdown && c.end_date) startCD('ct-countdown', new Date(c.end_date).getTime());
+
+  // ── mini positions list in this tab ──
+  const miniList = document.getElementById('op-positions-mini');
+  if (miniList) {
+    const filtered = ET.positions.filter(p => String(p.contract_id||'') === String(c.contract_id||''));
+    if (filtered.length) {
+      miniList.innerHTML = `
+        <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1.5fr;gap:0;padding:8px 16px;background:var(--card2);border:1px solid var(--bdr);border-radius:var(--r) var(--r) 0 0;font-size:10px;color:var(--t4);text-transform:uppercase;letter-spacing:.07em;font-weight:700;">
+          <span>Symbol</span><span>Entry</span><span>Mark</span><span>Amount</span><span style="text-align:right;">P/L</span>
+        </div>
+        <div style="border:1px solid var(--bdr);border-top:none;border-radius:0 0 var(--r) var(--r);">
+          ${filtered.map(p => renderPosCard(p, true)).join('')}
+        </div>`;
+    } else {
+      miniList.innerHTML = '<div class="empty-state" style="padding:20px;"><p style="font-size:12px;">ไม่มี Position ในสัญญานี้</p></div>';
+    }
+  }
+
+  // แสดงข้อมูลสัญญา
+  const ctLabel = document.getElementById('ct-label');
+  const ctPeriod = document.getElementById('ct-period');
+  const ctApy = document.getElementById('ct-apy');
+  if (ctLabel)  ctLabel.textContent  = 'Stake ' + stake.toLocaleString('th',{minimumFractionDigits:2}) + ' USDT · ' + planMonths + ' เดือน';
+  if (ctPeriod) ctPeriod.textContent = startDate + ' → ' + endDate;
+  if (ctApy)    ctApy.textContent    = apyRate + '%';
+
+  // Budget bar
+  // ── Budget display (new Binance-style elements) ──
+  const usedEl = document.getElementById('op-used');
+  if (usedEl) usedEl.textContent = usedBudget.toFixed(2);
+  const remEl = document.getElementById('op-remaining');
+  if (remEl) remEl.textContent = remaining.toFixed(2);
+  const remPct = document.getElementById('op-remaining-pct');
+  if (remPct) remPct.textContent = (100 - pct).toFixed(0) + '%';
+  const fill = document.getElementById('op-budget-fill');
+  if (fill) {
+    fill.style.width = pct + '%';
+    fill.className = 'budget-fill' + (pct >= 90 ? ' danger' : pct >= 60 ? ' warn' : '');
+  }
+  const totalEl = document.getElementById('op-total-budget');
+  if (totalEl) totalEl.textContent = totalBudget.toFixed(2) + ' USDT';
+
+
+  // ── Budget exhausted / submit state (new + old IDs) ──
+  const exhaustEl3  = document.getElementById('op-budget-exhausted');
+  const submitArea3 = document.getElementById('op-submit-area');
+  const submitBtn3  = document.getElementById('btn-open-order');
+  const formWrap    = document.getElementById('op-order-form-wrap');
+  const emptyEl     = document.getElementById('op-budget-empty');
+  const msgEl       = document.getElementById('op-budget-msg');
+
+  if (remaining <= 0) {
+    if (exhaustEl3)  exhaustEl3.style.display  = '';
+    if (submitArea3) submitArea3.style.display  = 'none';
+    if (submitBtn3)  submitBtn3.disabled = true;
+    if (formWrap)    formWrap.style.display     = 'none';
+    if (emptyEl)     emptyEl.style.display      = '';
+    if (msgEl)       msgEl.style.display        = '';
+  } else {
+    if (exhaustEl3)  exhaustEl3.style.display  = 'none';
+    if (submitArea3) submitArea3.style.display  = '';
+    if (submitBtn3)  submitBtn3.disabled = false;
+    if (formWrap)    formWrap.style.display     = '';
+    if (emptyEl)     emptyEl.style.display      = 'none';
+    if (msgEl)       msgEl.style.display        = 'none';
+  }
+}
+
+// ✅ NEW: กด % เพื่อเลือก Amount จาก Budget คงเหลือ
+function setOrderPct(pct) {
+  const c = ET.contract;
+  if (!c) return;
+  const totalBudget = Number(c.order_budget || Number(c.stake_amount||0) * 0.10);
+  const usedBudget  = ET.positions
+    .filter(p => String(p.contract_id||'') === String(c.contract_id||''))
+    .reduce((s,p)=>s+Number(p.order_amount||0), 0);
+  const remaining   = Math.max(totalBudget - usedBudget, 0);
+  const amt         = Math.floor(remaining * pct * 100) / 100;
+  const el          = document.getElementById('op-amount');
+  if (el) { el.value = amt > 0 ? amt : ''; updateOrderPreview(); }
+}
+
+function renderCoinList() {
+  const coins = ET.etSettings.coins || ['BTC','ETH','SOL','BNB'];
+  const icons = { BTC:'₿', ETH:'Ξ', SOL:'◎', BNB:'⬡' };
+  document.getElementById('coin-list').innerHTML = coins.map(c => `
+    <div class="coin-opt ${selectedCoin===c?'selected':''}" onclick="selectCoin('${c}')">
+      <div class="coin-icon">${icons[c]||'🪙'}</div>
+      <div>
+        <div class="coin-name">${c}/USDT</div>
+        <div class="coin-price" data-coin="${c}">$${(PRICES[c]||0).toLocaleString()}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectCoin(coin) {
+  selectedCoin = coin;
+  renderCoinList();
+  updateOrderPreview();
+  // ✅ NEW: แสดงกราฟ
+  loadCoinChart(coin);
+}
+function selectDir(dir) {
+  selectedDir = dir;
+  // ID ใหม่ (Binance-style tab)
+  const longTab  = document.getElementById('dir-long-tab');
+  const shortTab = document.getElementById('dir-short-tab');
+  if (longTab && shortTab) {
+    if (dir === 'LONG') {
+      longTab.style.borderBottomColor  = 'var(--ok)';  longTab.classList.add('selected');
+      shortTab.style.borderBottomColor = 'transparent'; shortTab.classList.remove('selected');
+      const ob = document.getElementById('btn-open-order');
+      if (ob) { ob.style.background='rgba(14,203,129,.15)'; ob.style.color='var(--ok)'; ob.style.border='1px solid rgba(14,203,129,.3)'; ob.textContent='เปิด LONG Order'; }
+    } else {
+      shortTab.style.borderBottomColor = 'var(--err)';  shortTab.classList.add('selected');
+      longTab.style.borderBottomColor  = 'transparent'; longTab.classList.remove('selected');
+      const ob = document.getElementById('btn-open-order');
+      if (ob) { ob.style.background='rgba(246,70,93,.15)'; ob.style.color='var(--err)'; ob.style.border='1px solid rgba(246,70,93,.3)'; ob.textContent='เปิด SHORT Order'; }
+    }
+  }
+  // fallback: old-style dir buttons (ถ้ายังมี)
+  document.querySelectorAll('.dir-btn').forEach(b => {
+    b.classList.toggle('selected', b.classList.contains(dir.toLowerCase()));
+  });
+  updateOrderPreview();
+}
+// ✅ NEW: เลือก Leverage
+function selectLeverage(lev) {
+  selectedLeverage = lev;
+  document.querySelectorAll('.lev-btn').forEach(b => {
+    b.classList.remove('selected');
+    // support both data-lev and onclick="selLev(N)"
+    const bLev = Number(b.dataset.lev) || Number((b.getAttribute('onclick')||'').replace(/\D/g,''));
+    if (bLev === lev) b.classList.add('selected');
+  });
+  const warn = document.getElementById('lev-warn');
+  if (lev >= 100) {
+    warn.textContent = `⚠️ Leverage ${lev}x มีความเสี่ยงสูงมาก โปรดใช้ด้วยความระมัดระวัง`;
+    warn.style.display = '';
+  } else { warn.style.display = 'none'; }
+  updateOrderPreview();
+}
+
+function updateOrderPreview() {
+  const amt = parseFloat(document.getElementById('op-amount')?.value||0);
+  const c = ET.contract;
+  if (!c) return;
+
+  // ✅ CORRECT: ตรวจ Budget คงเหลือ ตาม contract ที่เลือก
+  const totalBudget = Number(c.order_budget || Number(c.stake_amount||0) * 0.10);
+  const usedBudget  = ET.positions
+    .filter(p => String(p.contract_id||'') === String(c.contract_id||''))
+    .reduce((s,p)=>s+Number(p.order_amount||0), 0);
+  const remaining   = Math.max(totalBudget - usedBudget, 0);
+
+  // ── ซิงค์ element ใหม่ (Binance-style panel) ──
+  const warnEl = document.getElementById('op-amount-warn');
+  if (warnEl) {
+    if (amt > remaining) {
+      warnEl.textContent = `⚠️ เกินวงเงินคงเหลือ (${remaining.toFixed(2)} USDT)`;
+      warnEl.style.display = '';
+    } else { warnEl.style.display = 'none'; }
+  }
+
+  // Preview box (op-preview)
+  const prevBox = document.getElementById('op-preview');
+  const prevAmt = document.getElementById('prev-amt');
+  const prevLev = document.getElementById('prev-lev');
+  const prevNot = document.getElementById('prev-notional');
+  const prevEn2 = document.getElementById('prev-entry2');
+  const prevEn  = document.getElementById('prev-entry');
+
+  if (prevEn) prevEn.textContent = '$' + (PRICES[selectedCoin]||0).toLocaleString();
+  if (prevEn2) prevEn2.textContent = '$' + (PRICES[selectedCoin]||0).toLocaleString();
+
+  if (amt > 0 && selectedCoin && selectedDir && amt <= remaining) {
+    if (prevBox) prevBox.style.display = '';
+    if (prevAmt) prevAmt.textContent = amt.toFixed(2) + ' USDT';
+    if (prevLev) prevLev.textContent = selectedLeverage + 'x';
+    if (prevNot) prevNot.textContent = (amt * selectedLeverage).toLocaleString('th',{minimumFractionDigits:2}) + ' USDT';
+  } else {
+    if (prevBox) prevBox.style.display = 'none';
+  }
+
+  // Budget exhausted state
+  const exhaustEl = document.getElementById('op-budget-exhausted');
+  const submitArea = document.getElementById('op-submit-area');
+  if (exhaustEl && submitArea) {
+    if (remaining <= 0) {
+      exhaustEl.style.display = '';
+      submitArea.style.display = 'none';
+    } else {
+      exhaustEl.style.display = 'none';
+      submitArea.style.display = '';
+    }
+  }
+
+  // Old-style elements (backward compat)
+  const prevReady   = document.getElementById('op-preview-ready');
+  const prevContent = document.getElementById('op-preview-content');
+  if (prevReady)   prevReady.style.display   = (amt > 0 && selectedCoin && selectedDir) ? '' : 'none';
+  if (prevContent) prevContent.style.display = (amt > 0 && selectedCoin && selectedDir) ? 'none' : '';
+}
+
+async function submitOpenOrder() {
+  if (!SESSION || !ET.contract) { showToast('ไม่มีสัญญาเทรด','err'); return; }
+  const amt = parseFloat(document.getElementById('op-amount').value||0);
+  if (!amt || amt < 1)  { showToast('ใส่จำนวน Order Amount','warn'); return; }
+  if (!selectedCoin)    { showToast('เลือกเหรียญ','warn'); return; }
+  if (!selectedDir)     { showToast('เลือกทิศทาง','warn'); return; }
+
+  // ✅ CORRECT: ตรวจ Budget 10% ของ Stake ตาม contract ที่เลือก
+  const totalBudget = Number(ET.contract.order_budget || Number(ET.contract.stake_amount||0) * 0.10);
+  const usedBudget  = ET.positions
+    .filter(p => String(p.contract_id||'') === String(ET.contract.contract_id||''))
+    .reduce((s,p)=>s+Number(p.order_amount||0), 0);
+  const remaining   = totalBudget - usedBudget;
+  if (amt > remaining + 0.001) {
+    showToast('เกินวงเงินคงเหลือ (' + remaining.toFixed(2) + ' USDT)','err');
+    return;
+  }
+
+  showLoad('กำลังเปิด Order...');
+  try {
+    const res = await apiPost({
+      action: 'etOpenOrder',
+      member_id: SESSION.member_id,
+      contract_id: ET.contract.contract_id || ET.contract.id,
+      coin: selectedCoin,
+      direction: selectedDir,
+      order_amount: amt,
+      entry_price: PRICES[selectedCoin],
+      leverage: selectedLeverage  // ✅ ส่ง leverage ไปด้วย
+    });
+    hideLoad();
+    if (res.success) {
+      showToast('✅ เปิด Order สำเร็จ! Leverage: ' + selectedLeverage + 'x');
+      selectedCoin = null; selectedDir = null; selectedLeverage = 1;
+      document.getElementById('op-amount').value = '';
+      loadEtData();
+    } else showToast(res.error||'เปิด Order ไม่สำเร็จ','err');
+  } catch(e) {
+    hideLoad();
+    // Offline: add to local state
+    ET.positions.push({
+      position_id: 'POS-' + Date.now(),
+      member_id: SESSION.member_id,
+      contract_id: ET.contract.contract_id,  // ✅ เพิ่ม contract_id
+      coin: selectedCoin,
+      direction: selectedDir,
+      order_amount: amt,
+      entry_price: PRICES[selectedCoin],
+      leverage: selectedLeverage,
+      status: 'open',
+      opened_at: new Date().toISOString()
+    });
+    selectedCoin = null; selectedDir = null; selectedLeverage = 1;
+    const amtEl = document.getElementById('op-amount');
+    if (amtEl) amtEl.value = '';
+    showToast('✅ เปิด Order (Offline Mode)');
+    renderAll();
+  }
+}
+
+// ─── POSITIONS ───
+function calcPnl(pos) {
+  const entry = Number(pos.entry_price||0);
+  const mark  = PRICES[pos.coin] || entry;
+  const amt   = Number(pos.order_amount||0);
+  const lev   = Number(pos.leverage||1);  // ✅ ใช้ leverage
+  if (!entry || !amt) return 0;
+  const priceDiff = mark - entry;
+  const pct = priceDiff / entry;
+  return (pos.direction === 'LONG' ? amt * pct : -amt * pct) * lev;
+}
+
+function calcPnlPct(pos) {  // ✅ NEW: คำนวณ % P/L
+  const entry = Number(pos.entry_price||0);
+  const mark  = PRICES[pos.coin] || entry;
+  if (!entry) return 0;
+  const priceDiff = mark - entry;
+  const pct = (priceDiff / entry) * 100;
+  const lev = Number(pos.leverage||1);
+  return (pos.direction === 'LONG' ? pct : -pct) * lev;
+}
+
+// =================================================================
+//  CROSS MARGIN ENGINE
+//  1. crossMargin/order = order_amount x 2
+//  2. หลาย order -> เฉลี่ย cross pool รวม
+//  3. crossPool = max(sum(order x 2), stake x 30%)
+//  4. Liquidate เมื่อ unrealizedPnl <= -(margin + cross)
+//  ตัวอย่าง: order 100 -> cross 200 -> แตกที่ -300
+// =================================================================
+
+function getCrossPool(contractId) {
+  // crossPool = stake x 30% เสมอ ไม่ว่าจะเปิดกี่ order หรือเปิดเท่าไหร่
+  // สมาชิกขาดทุนได้สูงสุด 30% ของ Stake เท่านั้น
+  const ct = ET.contracts.find(c => String(c.contract_id||'') === String(contractId||''))
+          || ET.contract || null;
+  const stake = Number(ct && ct.stake_amount || 0);
+  return stake * 0.30;
+}
+
+function getCrossForPosition(p) {
+  const pool    = getCrossPool(p.contract_id);
+  const openPos = ET.positions.filter(q =>
+    String(q.contract_id||'') === String(p.contract_id||'') && q.status !== 'closed'
+  );
+  if (!openPos.length) return pool;
+  const sumAmt = openPos.reduce((s, q) => s + Number(q.order_amount||0), 0);
+  const myAmt  = Number(p.order_amount||0);
+  return sumAmt > 0 ? pool * (myAmt / sumAmt) : pool;
+}
+
+function calcLiqPrice(p) {
+  const entry = Number(p.entry_price||0);
+  const amt   = Number(p.order_amount||0);
+  const lev   = Number(p.leverage||1);
+  if (!entry || !amt) return 0;
+  const cross = getCrossForPosition(p);
+  const size  = (amt * lev) / entry;
+  if (!size) return 0;
+  if (p.direction === 'LONG') {
+    return Math.max(0, entry - (amt + cross) / size);
+  } else {
+    return entry + (amt + cross) / size;
+  }
+}
+
+function calcMarginRatio(p) {
+  const entry = Number(p.entry_price||0);
+  const markP = PRICES[p.coin] || entry;
+  const amt   = Number(p.order_amount||0);
+  const lev   = Number(p.leverage||1);
+  if (!entry || !amt) return 0;
+  const pnl    = calcPnl(p);
+  const cross  = getCrossForPosition(p);
+  const equity = amt + cross + pnl;
+  if (equity <= 0) return 100;
+  const notional = (amt * lev) / entry * markP;
+  const mm       = notional * 0.005;
+  return Math.min((mm / equity) * 100, 100);
+}
+
+function renderPosCard(p, mini=false) {
+  const pnl = calcPnl(p);
+  const pnlPct = calcPnlPct(p);
+  const pnlColor = pnl >= 0 ? 'var(--ok)' : 'var(--err)';
+  const pnlSign = pnl >= 0 ? '+' : '';
+  const dirColor = p.direction==='LONG' ? 'var(--ok)' : 'var(--err)';
+  const dirLabel = p.direction==='LONG' ? 'LONG' : 'SHORT';
+  const dirBg = p.direction==='LONG' ? 'rgba(14,203,129,.1)' : 'rgba(246,70,93,.1)';
+  const icons = { BTC:'₿', ETH:'Ξ', SOL:'◎', BNB:'⬡', XRP:'✕' };
+  const lev = Number(p.leverage||1);
+  const posContract = ET.contracts.find(c => String(c.contract_id||'') === String(p.contract_id||'')) || ET.contracts[0] || null;
+  const endDate = posContract?.end_date ? new Date(posContract.end_date).getTime() : 0;
+  const cdId = 'cd-' + p.position_id;
+  const entryP = Number(p.entry_price||0);
+  const markP = PRICES[p.coin] || entryP;
+  const notional = Number(p.order_amount||0) * lev;
+  const borderColor = p.direction==='LONG' ? 'var(--ok)' : 'var(--err)';
+  // ── Extra metrics ──
+  const margin    = Number(p.order_amount||0);   // USDT margin
+  const sizeCoin  = entryP > 0 ? (margin * lev) / entryP : 0;  // size in coin units
+  const liqPrice  = calcLiqPrice(p);
+  const marginRatio = calcMarginRatio(p);
+  const mrColor   = marginRatio >= 80 ? 'var(--err)' : marginRatio >= 50 ? 'var(--warn,#F0B90B)' : 'var(--ok)';
+  const coinUnit  = p.coin || 'Coin';
+
+  if (mini) {
+    return `
+    <div class="pos-card" data-posid="${p.position_id}" style="border-left:3px solid ${borderColor};border-radius:0;border-top:none;margin-bottom:0;">
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1.5fr;gap:0;padding:12px 16px;align-items:center;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--hov);display:flex;align-items:center;justify-content:center;font-size:13px;">${icons[p.coin]||'🪙'}</div>
+          <div>
+            <div style="font-size:13px;font-weight:700;">${p.coin}/USDT</div>
+            <div style="display:flex;align-items:center;gap:4px;margin-top:2px;">
+              <span style="background:${dirBg};color:${dirColor};border-radius:3px;padding:1px 6px;font-size:10px;font-weight:700;font-family:var(--fm);">${dirLabel}</span>
+              ${lev>1?`<span class="lev-tag">${lev}x</span>`:''}
+            </div>
+          </div>
+        </div>
+        <div style="font-family:var(--fm);font-size:12px;color:var(--t2);">$${entryP.toLocaleString()}</div>
+        <div class="mark-price" style="font-family:var(--fm);font-size:12px;">$${markP.toLocaleString()}</div>
+        <div style="font-family:var(--fm);font-size:12px;color:var(--t2);">${Number(p.order_amount||0).toFixed(2)}</div>
+        <div style="text-align:right;">
+          <div class="pnl-val" style="font-family:var(--fm);font-size:13px;font-weight:700;color:${pnlColor};">${pnlSign}${pnl.toLocaleString('th',{minimumFractionDigits:3})} USDT</div>
+          <div class="pnl-pct" style="font-size:11px;color:${pnlColor};font-family:var(--fm);">${pnlSign}${pnlPct.toFixed(2)}%</div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  return `
+  <div class="pos-card" data-posid="${p.position_id}">
+    <!-- Header -->
+    <div class="pos-card-header">
+      <div class="pos-coin-info">
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--hov);display:flex;align-items:center;justify-content:center;font-size:15px;margin-right:2px;">${icons[p.coin]||'🪙'}</div>
+        <div>
+          <div class="pos-symbol">${p.coin}/USDT <span class="perp-tag">Perp</span></div>
+          <div class="pos-meta">
+            <span style="background:${dirBg};color:${dirColor};border-radius:3px;padding:1px 7px;font-size:10px;font-weight:700;font-family:var(--fm);">${dirLabel}</span>
+            ${lev>1?`<span class="lev-tag">${lev}x</span>`:''}
+          </div>
+        </div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:10px;color:var(--t4);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;">PNL (USDT)</div>
+        <div class="pnl-val" style="font-family:var(--fm);font-size:15px;font-weight:700;color:${pnlColor};">${pnlSign}${pnl.toLocaleString('th',{minimumFractionDigits:2,maximumFractionDigits:2})} USDT</div>
+        <div class="pnl-pct" style="font-size:12px;color:${pnlColor};font-family:var(--fm);font-weight:600;">ROI ${pnlSign}${pnlPct.toFixed(2)}%</div>
+      </div>
+    </div>
+    <!-- Body grid 3x2 -->
+    <div class="pos-card-body">
+      <div class="pos-cell">
+        <div class="pos-cell-label">Size (${coinUnit})</div>
+        <div class="pos-cell-val">${sizeCoin.toFixed(4)} ${coinUnit}</div>
+      </div>
+      <div class="pos-cell">
+        <div class="pos-cell-label">Margin (USDT)</div>
+        <div class="pos-cell-val">${margin.toFixed(2)} USDT</div>
+      </div>
+      <div class="pos-cell">
+        <div class="pos-cell-label">Margin Ratio</div>
+        <div class="pos-cell-val live-mr" style="color:${mrColor};">${marginRatio.toFixed(2)}%</div>
+      </div>
+      <div class="pos-cell">
+        <div class="pos-cell-label">Entry Price (USDT)</div>
+        <div class="pos-cell-val">$${entryP.toLocaleString()}</div>
+      </div>
+      <div class="pos-cell">
+        <div class="pos-cell-label">Mark Price (USDT)</div>
+        <div class="pos-cell-val mark-price">$${markP.toLocaleString()}</div>
+      </div>
+      <div class="pos-cell">
+        <div class="pos-cell-label">Liq. Price (USDT)</div>
+        <div class="pos-cell-val live-liq" style="color:var(--err);">${lev>1?'$'+liqPrice.toLocaleString('th',{minimumFractionDigits:2,maximumFractionDigits:2}):'—'}</div>
+      </div>
+    </div>
+    <!-- PNL area -->
+    <div class="pos-pnl-area" style="flex-wrap:wrap;gap:8px;">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:10px;color:var(--t4);">Notional</span>
+        <span style="font-family:var(--fm);font-size:12px;color:var(--t2);">$${notional.toLocaleString('th',{minimumFractionDigits:2})}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:10px;color:var(--t4);">APY คาดการณ์</span>
+        <span style="font-family:var(--fm);font-size:12px;color:var(--gold);">
+          ${(()=>{
+            const stake   = Number(posContract?.stake_amount||0);
+            const apy     = Number(posContract?.apy_rate||0);
+            const months  = Number(posContract?.plan_months||0);
+            if (!stake||!apy||!months) return '—';
+            const est = stake * (apy/100) * (months/12);
+            return '+' + est.toLocaleString('th',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' USDT';
+          })()}
+        </span>
+        <span style="font-size:10px;color:var(--t4);">(${Number(posContract?.plan_months||0)}เดือน · ${Number(posContract?.apy_rate||0)}%)</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:10px;color:var(--t4);">ครบสัญญาใน</span>
+        <div id="${cdId}" class="cd-wrap"></div>
+      </div>
+    </div>
+    <!-- Actions -->
+    <div class="pos-actions-area">
+      <button class="btn btn-err btn-sm" onclick="openCloseOrder('${p.position_id}')">ปิด Order</button>
+    </div>
+  </div>`;
+}
+
+function renderPositions() {
+  // Populate contract filter dropdown
+  const ctFilter = document.getElementById('pos-filter-contract');
+  if (ctFilter) {
+    const curVal = ctFilter.value;
+    ctFilter.innerHTML = '<option value="">สัญญา: ทั้งหมด</option>' +
+      ET.contracts.map((c,i) =>
+        `<option value="${c.contract_id}" ${c.contract_id===curVal?'selected':''}>สัญญา ${i+1}: ${Number(c.stake_amount||0).toFixed(2)} USDT</option>`
+      ).join('');
+  }
+  // Update count display
+  const countEl = document.getElementById('pos-count');
+  if (countEl) countEl.textContent = ET.positions.length + ' positions';
+  // Update summary bar
+  updatePositionsSummary();
+  // Delegate actual rendering to filter function (respects current filters)
+  filterPositions();
+}
+
+// ─── AUTO-LIQUIDATION ENGINE ───────────────────────────────────────────
+// รันทุกครั้งที่ราคา update (ทุก 3 วิ) — ตรวจ Liq. Price และ Margin Ratio
+let _liqInProgress = new Set(); // ป้องกัน double-liquidate
+
+async function checkAutoLiquidation() {
+  if (!SESSION || !ET.positions.length) return;
+  const toClose = [];
+
+  ET.positions.forEach(p => {
+    if (_liqInProgress.has(p.position_id)) return;
+    const markP = PRICES[p.coin] || Number(p.entry_price||0);
+    const liqP  = calcLiqPrice(p);
+    const mr    = calcMarginRatio(p);
+
+    const isLiquidated =
+      mr >= 100 ||
+      (p.direction === 'LONG'  && markP <= liqP && liqP > 0) ||
+      (p.direction === 'SHORT' && markP >= liqP && liqP > 0);
+
+    if (isLiquidated) toClose.push(p);
+  });
+
+  for (const p of toClose) {
+    _liqInProgress.add(p.position_id);
+    const markP     = PRICES[p.coin] || Number(p.entry_price||0);
+    const orderAmt  = Number(p.order_amount||0);
+    const cross     = getCrossForPosition(p);
+    const crossPool = getCrossPool(p.contract_id);
+    // pnl = -(margin + cross) ที่ใช้จริง แต่จำกัดที่ crossPool
+    const crossUsed = Math.min(cross, crossPool);
+    const pnl       = -(orderAmt + crossUsed);
+
+    // แสดง Modal รายละเอียด Liquidation
+    showLiqNotice(p, markP, pnl, orderAmt, crossUsed, crossPool);
+
+    try {
+      const res = await apiPost({
+        action:      'etCloseOrder',
+        member_id:   SESSION.member_id,
+        position_id: p.position_id,
+        exit_price:  markP,
+        pnl:         pnl
+      });
+      if (res.success) {
+        loadEtData();
+      } else {
+        _forceLiquidateLocal(p, markP, pnl);
+      }
+    } catch(e) {
+      _forceLiquidateLocal(p, markP, pnl);
+    } finally {
+      _liqInProgress.delete(p.position_id);
+    }
+  }
+}
+
+function showLiqNotice(p, markP, pnl, orderAmt, crossUsed, crossPool) {
+  const icons = { BTC:'₿', ETH:'Ξ', SOL:'◎', BNB:'⬡' };
+  const dirColor = p.direction==='LONG' ? 'var(--ok)' : 'var(--err)';
+  const liqP = calcLiqPrice(p);
+  const totalDeduct = orderAmt + crossUsed;
+
+  // เติมข้อมูลใน Modal
+  const s = id => document.getElementById(id);
+  if (s('liq-icon'))       s('liq-icon').textContent      = icons[p.coin] || '🪙';
+  if (s('liq-symbol'))     s('liq-symbol').textContent    = p.coin + '/USDT Perp';
+  if (s('liq-dir-badge'))  s('liq-dir-badge').innerHTML   =
+    `<span style="color:${dirColor};font-weight:700;">${p.direction}</span>
+     <span style="color:var(--t4);margin-left:6px;">${Number(p.leverage||1)}x Leverage</span>`;
+  if (s('liq-order-amt'))  s('liq-order-amt').textContent = orderAmt.toFixed(2) + ' USDT';
+  if (s('liq-entry'))      s('liq-entry').textContent     = '$' + Number(p.entry_price||0).toLocaleString();
+  if (s('liq-mark'))       s('liq-mark').textContent      = '$' + markP.toLocaleString();
+  if (s('liq-liqprice'))   s('liq-liqprice').textContent  = '$' + liqP.toLocaleString('th',{minimumFractionDigits:2,maximumFractionDigits:2});
+  if (s('liq-loss'))       s('liq-loss').textContent      = '-' + Math.abs(pnl).toFixed(2) + ' USDT';
+  if (s('liq-cross-pool')) s('liq-cross-pool').textContent= crossPool.toFixed(2);
+  if (s('liq-init-margin'))s('liq-init-margin').textContent = '-' + orderAmt.toFixed(2) + ' USDT';
+  if (s('liq-cross-used')) s('liq-cross-used').textContent  = '-' + crossUsed.toFixed(2) + ' USDT';
+  if (s('liq-total-deduct'))s('liq-total-deduct').textContent= '-' + totalDeduct.toFixed(2) + ' USDT';
+
+  openM('m-liq-notice');
+
+  // Toast สั้นๆ เพิ่มเติม
+  showToast('⚡ LIQUIDATED: ' + p.coin + '/USDT — ดูรายละเอียด', 'err');
+}
+
+function _forceLiquidateLocal(p, exitPrice, pnl) {
+  ET.positions = ET.positions.filter(x => x.position_id !== p.position_id);
+  ET.realizedHistory.push({
+    position_id: p.position_id,
+    member_id:   SESSION.member_id,
+    coin:        p.coin,
+    direction:   p.direction,
+    entry_price: p.entry_price,
+    exit_price:  exitPrice,
+    order_amount:p.order_amount,
+    realized_pnl:pnl,
+    closed_at:   new Date().toISOString(),
+    note:        'AUTO_LIQUIDATED'
+  });
+  renderAll();
+}
+// ───────────────────────────────────────────────────────────────────────
+
+function updatePositionsPnl() {
+  // อัปเดต P/L ใน positions tab (ถ้า render แล้ว)
+  ET.positions.forEach(p => {
+    const pnl = calcPnl(p);
+    const pnlPct = calcPnlPct(p);
+    const pnlColor = pnl >= 0 ? 'var(--ok)' : 'var(--err)';
+    const pnlSign  = pnl >= 0 ? '+' : '';
+
+    const card = document.querySelector(`[data-posid="${p.position_id}"]`);
+    if (card) {
+      const markEl = card.querySelector('.mark-price');
+      const pnlEl  = card.querySelector('.pnl-val');
+      const pctEl  = card.querySelector('.pnl-pct');
+      if (markEl) markEl.textContent = '$' + (PRICES[p.coin]||0).toLocaleString();
+      if (pnlEl)  { pnlEl.textContent = pnlSign+pnl.toLocaleString('th',{minimumFractionDigits:2})+' USDT'; pnlEl.style.color = pnlColor; }
+      if (pctEl)  { pctEl.textContent = 'ROI '+(pnlSign+pnlPct.toFixed(2))+'%'; pctEl.style.color = pnlColor; }
+
+      // ── อัปเดต Margin Ratio และ Liq Price แบบ live ──
+      const lev = Number(p.leverage||1);
+      const mr  = calcMarginRatio(p);
+      const liqP= calcLiqPrice(p);
+      const mrColor = mr >= 80 ? 'var(--err)' : mr >= 50 ? '#F0B90B' : 'var(--ok)';
+      const mrEl  = card.querySelector('.live-mr');
+      const liqEl = card.querySelector('.live-liq');
+      if (mrEl)  { mrEl.textContent  = mr.toFixed(2)+'%';  mrEl.style.color  = mrColor; }
+      if (liqEl) { liqEl.textContent = lev>1 ? '$'+liqP.toLocaleString('th',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—'; liqEl.style.color = 'var(--err)'; }
+    }
+  });
+  // ตรวจ Auto-Liquidation ทุกครั้งที่ราคาอัปเดต
+  checkAutoLiquidation();
+  updateOverviewPnl();
+  updatePositionsSummary();
+}
+
+function openCloseOrder(posId) {
+  const pos = ET.positions.find(p => p.position_id === posId);
+  if (!pos) return;
+  closingOrderId = posId;
+  const pnl = calcPnl(pos);
+  document.getElementById('close-coin').textContent = pos.coin + '/USDT';
+  const dirColor = pos.direction==='LONG'?'var(--ok)':'var(--err)';
+  document.getElementById('close-dir').innerHTML = `<span style="color:${dirColor}">${pos.direction}</span>`;
+  document.getElementById('close-entry').textContent = '$' + Number(pos.entry_price||0).toLocaleString();
+  document.getElementById('close-exit').textContent = '$' + (PRICES[pos.coin]||0).toLocaleString();
+  document.getElementById('close-amount').textContent = Number(pos.order_amount||0).toFixed(2) + ' USDT';
+  const pnlColor = pnl>=0?'var(--ok)':'var(--err)';
+  const pnlSign = pnl>=0?'+':'';
+  document.getElementById('close-pnl').innerHTML = 
+    `<span style="color:${pnlColor}">${pnlSign}${pnl.toLocaleString('th',{minimumFractionDigits:2})} USDT</span>`;
+  openM('m-close-order');
+}
+
+async function confirmCloseOrder() {
+  if (!closingOrderId) return;
+  const pos = ET.positions.find(p => p.position_id === closingOrderId);
+  if (!pos) return;
+  const exitPrice = PRICES[pos.coin] || Number(pos.entry_price);
+  const pnl = calcPnl(pos);
+
+  showLoad('กำลังปิด Order...');
+  try {
+    const res = await apiPost({
+      action: 'etCloseOrder',
+      member_id: SESSION.member_id,
+      position_id: closingOrderId,
+      exit_price: exitPrice,
+      pnl: pnl
+    });
+    hideLoad();
+    closeM('m-close-order');
+    if (res.success) {
+      showToast('✅ ปิด Order สำเร็จ! P/L: ' + (pnl>=0?'+':'') + pnl.toFixed(2) + ' USDT');
+      loadEtData();
+    } else showToast(res.error||'ปิด Order ไม่สำเร็จ','err');
+  } catch(e) {
+    hideLoad();
+    closeM('m-close-order');
+    // Offline: process locally
+    ET.positions = ET.positions.filter(p => p.position_id !== closingOrderId);
+    ET.realizedHistory.push({
+      position_id: closingOrderId,
+      member_id: SESSION.member_id,
+      coin: pos.coin,
+      direction: pos.direction,
+      entry_price: pos.entry_price,
+      exit_price: exitPrice,
+      order_amount: pos.order_amount,
+      pnl,
+      closed_at: new Date().toISOString()
+    });
+    showToast('✅ ปิด Order (Offline) P/L: ' + (pnl>=0?'+':'') + pnl.toFixed(2) + ' USDT');
+    closingOrderId = null;
+    renderAll();
+  }
+}
+
+// ─── REALIZED ───
+function renderRealized() {
+  const tbody = document.getElementById('realized-tbody');
+  // ── Summary bar ──
+  const total = ET.realizedHistory.reduce((s,r) => s + Number(r.realized_pnl??r.pnl??0), 0);
+  const wins  = ET.realizedHistory.filter(r => Number(r.realized_pnl??r.pnl??0) > 0).length;
+  const loses = ET.realizedHistory.filter(r => Number(r.realized_pnl??r.pnl??0) < 0).length;
+  const rlTot = document.getElementById('rl-total');
+  const rlW   = document.getElementById('rl-wins');
+  const rlL   = document.getElementById('rl-losses');
+  if (rlTot) { rlTot.textContent = (total>=0?'+':'')+total.toFixed(3)+' USDT'; rlTot.style.color = total>=0?'var(--ok)':'var(--err)'; }
+  if (rlW)   rlW.textContent = wins;
+  if (rlL)   rlL.textContent = loses;
+
+  if (!ET.realizedHistory.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--t4);">ไม่มีรายการ</td></tr>';
+    return;
+  }
+  tbody.innerHTML = [...ET.realizedHistory].reverse().map(r => {
+    const pnl = Number(r.realized_pnl ?? r.pnl ?? 0);
+    const pnlColor = pnl>=0?'var(--ok)':'var(--err)';
+    const pnlSign = pnl>=0?'+':'';
+    const lev = Number(r.leverage||1);
+    return `<tr>
+      <td style="font-weight:700;">${r.coin||'—'}/USDT</td>
+      <td><span class="bdg ${r.direction==='LONG'?'bdg-ok':'bdg-err'}">${r.direction||'—'}</span></td>
+      <td class="num">$${Number(r.entry_price||0).toLocaleString()}</td>
+      <td class="num">$${Number(r.exit_price||0).toLocaleString()}</td>
+      <td class="num">${Number(r.order_amount||0).toFixed(2)}</td>
+      <td class="num">${lev>1?`<span class="lev-tag">${lev}x</span>`:'1x'}</td>
+      <td class="num" style="color:${pnlColor};font-weight:700;">${pnlSign}${pnl.toFixed(4)}</td>
+      <td style="color:var(--t4);font-size:12px;">${(r.closed_at||'').slice(0,10)}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ─── PAYOUT HISTORY ───
+function renderPayoutHistory() {
+  const tbody = document.getElementById('payout-tbody');
+  // ── Summary ──
+  const totalApy  = ET.payoutHistory.reduce((s,p) => s+Number(p.apy_amount||0), 0);
+  const totalComm = ET.payoutHistory.reduce((s,p) => s+Number(p.commission_amount||0), 0);
+  const apyEl   = document.getElementById('apy-total-paid');
+  const commEl  = document.getElementById('comm-total-paid');
+  const incEl   = document.getElementById('income-total-paid');
+  if (apyEl)  apyEl.textContent  = '+' + totalApy.toFixed(2) + ' USDT';
+  if (commEl) commEl.textContent = '+' + totalComm.toFixed(2) + ' USDT';
+  if (incEl)  { incEl.textContent = '+' + (totalApy+totalComm).toFixed(2) + ' USDT'; incEl.style.color = 'var(--ok)'; }
+  // ── also update overview ──
+  const ovApy  = document.getElementById('ov-apy-paid');
+  const ovComm = document.getElementById('ov-comm-paid');
+  if (ovApy)  ovApy.textContent  = totalApy.toLocaleString('th',{minimumFractionDigits:2}) + ' USDT';
+  if (ovComm) ovComm.textContent = totalComm.toLocaleString('th',{minimumFractionDigits:2}) + ' USDT';
+
+  if (!ET.payoutHistory.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--t4);">ไม่มีรายการ</td></tr>';
+    return;
+  }
+  tbody.innerHTML = [...ET.payoutHistory].reverse().map(p => {
+    const apy = Number(p.apy_amount||0);
+    const comm = Number(p.commission_amount||0);
+    const total = apy + comm;
+    const isPaid = p.status === 'paid';
+    return `<tr>
+      <td>${p.period||'—'}</td>
+      <td class="num" style="color:var(--ok);">+${apy.toFixed(2)}</td>
+      <td class="num" style="color:var(--gold);">+${comm.toFixed(2)}</td>
+      <td class="num" style="font-weight:700;color:var(--ok);">+${total.toFixed(2)}</td>
+      <td><span class="bdg ${isPaid?'bdg-ok':'bdg-warn'}">${isPaid?'จ่ายแล้ว':'รอจ่าย'}</span></td>
+      <td style="color:var(--t4);font-size:12px;">${(p.paid_at||'').slice(0,10)||'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ─── DEPOSITS ───
+async function submitDeposit() {
+  if (!SESSION) { openM('m-auth'); return; }
+  const amount = parseFloat(document.getElementById('dep-amount').value||0);
+  const txHash = document.getElementById('dep-txhash').value.trim();
+  if (!amount || amount < 10) { showToast('จำนวนขั้นต่ำ 10 USDT','warn'); return; }
+  if (!txHash || txHash.length < 10) { showToast('กรุณากรอก TX Hash','warn'); return; }
+  showLoad('กำลังส่งคำขอ...');
+  try {
+    const res = await apiPost({
+      action: 'deposit',
+      member_id: SESSION.member_id,
+      amount,
+      network: depositNetwork,
+      tx_hash: txHash
+    });
+    hideLoad();
+    if (res.success) {
+      showToast('✅ ส่งคำขอ Deposit แล้ว รอ Admin ยืนยัน');
+      document.getElementById('dep-amount').value = '';
+      document.getElementById('dep-txhash').value = '';
+      loadEtData();
+    } else showToast(res.error||'Deposit ไม่สำเร็จ','err');
+  } catch(e) { hideLoad(); showToast('❌ เชื่อมต่อ server ไม่ได้','err'); }
+}
+
+function renderDeposits() {
+  const tbody = document.getElementById('dep-tbody');
+  if (!ET.deposits.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--t3);">ไม่มีรายการ</td></tr>';
+    return;
+  }
+  tbody.innerHTML = [...ET.deposits].reverse().map(d => {
+    const st = d.tx_status||d.status||'pending';
+    const stClass = st==='success'?'bdg-ok':st==='rejected'?'bdg-err':'bdg-warn';
+    const stLabel = st==='success'?'✅ อนุมัติแล้ว':st==='rejected'?'❌ ปฏิเสธ':'⏳ รอยืนยัน';
+    return `<tr>
+      <td style="font-family:var(--fm);font-size:11px;">${d.tx_id||'—'}</td>
+      <td>${d.network||'—'}</td>
+      <td style="font-family:var(--fm);color:var(--ok);">+${Number(d.amount_usdt||0).toFixed(2)}</td>
+      <td><span class="bdg ${stClass}">${stLabel}</span></td>
+      <td style="color:var(--t3);font-size:12px;">${(d.created_at||'').slice(0,10)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function selNetwork(net) {
+  depositNetwork = net;
+  document.getElementById('net-trc20').classList.toggle('selected', net==='TRC20');
+  document.getElementById('net-bep20').classList.toggle('selected', net==='BEP20');
+  // แสดง Wallet Address ตาม network
+  const wallets = ET.etSettings?.wallets || {};
+  const addr = net === 'TRC20' ? (wallets.trc20||'ติดต่อ Admin') : (wallets.bep20||'ติดต่อ Admin');
+  const el = document.getElementById('dep-wallet-display');
+  if (el) el.textContent = addr;
+}
+
+function copyDepWallet() {
+  const el = document.getElementById('dep-wallet-display');
+  const txt = el ? el.textContent : '';
+  if (!txt || txt.includes('ติดต่อ')) { showToast('ไม่มี Wallet Address','warn'); return; }
+  navigator.clipboard.writeText(txt).then(() => showToast('✅ คัดลอก Address แล้ว')).catch(() => showToast('❌ ไม่สามารถคัดลอก','err'));
+}
+
+// ✅ NEW: Render Transaction History
+function renderTransactionHistory() {
+  const filterType = document.getElementById('tx-filter-type')?.value || '';
+  const tbody = document.getElementById('tx-tbody');
+  let txs = ET.transactions || [];
+  if (filterType) txs = txs.filter(t => (t.type||'').includes(filterType));
+  txs = [...txs].reverse();
+
+  if (!txs.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--t4);">ไม่มีรายการ</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = txs.map(t => {
+    const amt = Number(t.amount||0);
+    const isIn = t.direction === 'IN' || amt > 0;
+    const amtColor = isIn ? 'var(--ok)' : 'var(--err)';
+    const amtSign  = isIn ? '+' : '';
+    const typeMap = { Deposit:'bdg-ok', Withdraw:'bdg-err', Stake:'bdg-gold', ET_OpenOrder:'bdg-inf', ET_CloseOrder:'bdg-inf', ET_APY:'bdg-ok', ET_Commission:'bdg-warn' };
+    const typeCls = typeMap[t.type] || 'bdg-muted';
+    const statusOk = (t.status||'').toLowerCase().includes('success') || (t.status||'').includes('สำเร็จ');
+    const txShort = (t.tx_id||'—').slice(0,18) + ((t.tx_id||'').length>18?'...':'');
+    return `<tr>
+      <td style="font-family:var(--fm);font-size:11px;color:var(--t3);" title="${t.tx_id||''}">${txShort}</td>
+      <td><span class="bdg ${typeCls}" style="font-size:10px;">${t.type||'—'}</span></td>
+      <td class="num" style="color:${amtColor};font-weight:700;">${amtSign}${Math.abs(amt).toFixed(2)}</td>
+      <td>${t.direction ? `<span class="bdg ${t.direction==='IN'?'bdg-ok':'bdg-err'}" style="font-size:10px;">${t.direction}</span>` : '—'}</td>
+      <td style="font-size:12px;color:var(--t3);">${t.network||'INTERNAL'}</td>
+      <td><span class="bdg ${statusOk?'bdg-ok':'bdg-warn'}" style="font-size:10px;">${t.status||'—'}</span></td>
+      <td style="font-size:11px;color:var(--t3);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${t.detail||''}">${(t.detail||'').slice(0,30)||'—'}</td>
+      <td style="font-size:11px;color:var(--t4);">${(t.created_at||'').slice(0,16).replace('T',' ')}</td>
+    </tr>`;
+  }).join('');
+}
+
+function changeTF(btn, tf) {
+  document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const coin = selectedCoin || 'BTC';
+  const label = document.getElementById('chart-coin-label');
+  if (label) label.textContent = coin + '/USDT · ' + tf;
+  loadCoinChart(coin, tf);
+}
+function selLev(lev) { selectLeverage(lev); }
+
+async function loadCoinChart(coin) {
+  const wrap = document.getElementById('coin-chart-wrap');
+  const loading = document.getElementById('chart-loading');
+  const label = document.getElementById('chart-coin-label');
+  if (!wrap) return;
+  wrap.style.display = '';
+  if (loading) loading.style.display = '';
+  if (label) label.textContent = coin + '/USDT · ' + chartTF;
+
+  try {
+    // ดึงข้อมูล Kline จาก Binance public API
+    const tfMap = { '1m':'1m','5m':'5m','15m':'15m','1h':'1h','4h':'4h' };
+    const interval = tfMap[chartTF] || '15m';
+    const url = `https://api.binance.com/api/v3/klines?symbol=${coin}USDT&interval=${interval}&limit=60`;
+    const res = await fetch(url);
+    const raw = await res.json();
+    if (!Array.isArray(raw)) throw new Error('no data');
+    chartData = raw.map(k => ({
+      t: new Date(k[0]),
+      o: Number(k[1]), h: Number(k[2]), l: Number(k[3]), c: Number(k[4])
+    }));
+    drawChart(coin);
+  } catch(e) {
+    // fallback: สร้างข้อมูลจำลองจากราคาปัจจุบัน
+    const base = PRICES[coin] || 100;
+    chartData = [];
+    for (let i = 59; i >= 0; i--) {
+      const t = new Date(Date.now() - i * 60000);
+      const rnd = () => (Math.random() - 0.5) * 0.002 * base;
+      const c2 = base + rnd();
+      chartData.push({ t, o: c2-rnd(), h: c2+Math.abs(rnd()), l: c2-Math.abs(rnd()), c: c2 });
+    }
+    drawChart(coin);
+  }
+  if (loading) loading.style.display = 'none';
+}
+
+function drawChart(coin) {
+  const canvas = document.getElementById('price-chart');
+  if (!canvas || !chartData.length) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.parentElement.offsetWidth || 500;
+  canvas.width = w;
+  canvas.height = 200;
+  ctx.clearRect(0, 0, w, 200);
+
+  const prices = chartData.map(d => d.c);
+  const minP = Math.min(...prices);
+  const maxP = Math.max(...prices);
+  const range = maxP - minP || 1;
+  const pad = 10;
+  const chartH = 200 - pad * 2;
+  const chartW = w - pad * 2;
+  const stepX = chartW / (prices.length - 1);
+
+  // gradient fill
+  const grad = ctx.createLinearGradient(0, pad, 0, 200);
+  const isUp = prices[prices.length-1] >= prices[0];
+  const mainColor = isUp ? '#0ECB81' : '#F6465D';
+  grad.addColorStop(0, mainColor + '44');
+  grad.addColorStop(1, mainColor + '00');
+
+  // draw area
+  ctx.beginPath();
+  prices.forEach((p, i) => {
+    const x = pad + i * stepX;
+    const y = pad + chartH - ((p - minP) / range) * chartH;
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.lineTo(pad + (prices.length-1)*stepX, 200);
+  ctx.lineTo(pad, 200);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // draw line
+  ctx.beginPath();
+  ctx.strokeStyle = mainColor;
+  ctx.lineWidth = 2;
+  prices.forEach((p, i) => {
+    const x = pad + i * stepX;
+    const y = pad + chartH - ((p - minP) / range) * chartH;
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  // current price label
+  const lastP = prices[prices.length-1];
+  const lastX = pad + (prices.length-1)*stepX;
+  const lastY = pad + chartH - ((lastP - minP) / range) * chartH;
+  ctx.fillStyle = mainColor;
+  ctx.font = 'bold 11px monospace';
+  ctx.fillText('$' + lastP.toLocaleString(), Math.max(pad, lastX - 60), Math.max(14, lastY - 6));
+
+  // entry price line (if open order exists for this coin)
+  const openPos = ET.positions.find(p => p.coin === coin);
+  if (openPos) {
+    const ep = Number(openPos.entry_price);
+    if (ep >= minP && ep <= maxP) {
+      const ey = pad + chartH - ((ep - minP) / range) * chartH;
+      ctx.beginPath();
+      ctx.strokeStyle = '#F0B90B';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4,4]);
+      ctx.moveTo(pad, ey);
+      ctx.lineTo(w - pad, ey);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#F0B90B';
+      ctx.font = '10px monospace';
+      ctx.fillText('Entry: $' + ep.toLocaleString(), pad + 4, ey - 3);
+    }
+  }
+}
+
+function setChartTF(tf) {
+  chartTF = tf;
+  document.querySelectorAll('[id^="tf-"]').forEach(b => {
+    b.classList.remove('btn-warn');
+    b.classList.add('btn-ghost');
+  });
+  const btn = document.getElementById('tf-' + tf);
+  if (btn) { btn.classList.remove('btn-ghost'); btn.classList.add('btn-warn'); }
+  if (selectedCoin) loadCoinChart(selectedCoin);
+}
+
+// ─── WITHDRAW ───
+function openWithdrawModal() {
+  if (!SESSION) { openM('m-auth'); return; }
+  const bal = Number(SESSION.customer_wallet_usdt||0);
+  document.getElementById('wd-bal-disp').textContent = bal.toLocaleString('th',{minimumFractionDigits:2}) + ' USDT';
+  document.getElementById('wd-amount').value = '';
+  document.getElementById('wd-address').value = '';
+  openM('m-withdraw');
+}
+async function submitWithdraw() {
+  const amount = parseFloat(document.getElementById('wd-amount').value||0);
+  const address = document.getElementById('wd-address').value.trim();
+  const network = document.getElementById('wd-network').value;
+  if (!amount || amount < 10) { showToast('จำนวนขั้นต่ำ 10 USDT','warn'); return; }
+  if (!address) { showToast('กรุณากรอก Wallet Address','warn'); return; }
+  if (Number(SESSION.customer_wallet_usdt||0) < amount) { showToast('ยอดไม่พอ','err'); return; }
+  showLoad('กำลังส่งคำขอ...');
+  try {
+    const res = await apiPost({
+      action: 'withdraw', member_id: SESSION.member_id,
+      amount, network, address
+    });
+    hideLoad();
+    if (res.success) {
+      showToast('✅ ส่งคำขอถอน USDT แล้ว รอ Admin ดำเนินการ');
+      closeM('m-withdraw');
+      SESSION.customer_wallet_usdt = Number(SESSION.customer_wallet_usdt||0) - amount;
+      saveSession(SESSION);
+    } else showToast(res.error||'ถอนไม่สำเร็จ','err');
+  } catch(e) { hideLoad(); showToast('❌ เชื่อมต่อ server ไม่ได้','err'); }
+}
+
+// ─── STAKE ───
+function openStakeModal() {
+  if (!SESSION) { openM('m-auth'); return; }
+  const bal = Number(SESSION.customer_wallet_usdt||0);
+  const availEl = document.getElementById('stake-avail');
+  if (availEl) availEl.textContent = bal.toFixed(2) + ' USDT';
+  // Render plan cards
+  const planEl = document.getElementById('plan-grid-container');
+  if (planEl) {
+    const plans = ET.etSettings.plans || {3:6,6:8,9:10,12:12};
+    planEl.innerHTML = Object.entries(plans).map(([months, apy]) => `
+      <div class="plan-card ${Number(months)===selectedPlan?'selected':''}" onclick="selectPlan(${months})">
+        <div class="plan-dur">${months} เดือน</div>
+        <div class="plan-apy">${apy}%</div>
+        <div class="plan-lbl">APY/ปี</div>
+      </div>`).join('');
+  }
+  goStakeStep(1);
+  openM('m-stake');
+}
+
+function goStakeStep(step) {
+  [1,2,3].forEach(s => {
+    const el = document.getElementById('stake-step-'+s);
+    if (el) el.style.display = s === step ? '' : 'none';
+    const dot = document.getElementById('st-dot-'+s);
+    if (dot) {
+      dot.className = 'step-dot' + (s < step ? ' done' : s === step ? ' active' : '');
+    }
+    if (s < 3) {
+      const line = document.getElementById('st-line-'+s);
+      if (line) line.className = 'step-line' + (s < step ? ' done' : '');
+    }
+  });
+  if (step === 2) populateStakeConfirm();
+}
+
+function setStakeAmt(amt) {
+  const el = document.getElementById('stake-amount');
+  if (el) { el.value = amt; updateStakePreview(); }
+}
+
+function setStakeMax() {
+  const bal = Number(SESSION?.customer_wallet_usdt||0);
+  const el = document.getElementById('stake-amount');
+  if (el) { el.value = Math.floor(bal); updateStakePreview(); }
+}
+
+function updateStakePreview() {
+  const amt = parseFloat(document.getElementById('stake-amount')?.value||0);
+  const prev = document.getElementById('stake-preview');
+  if (!amt || amt < 50 || !selectedPlan) { if (prev) prev.style.display='none'; return; }
+  const apy = ET.etSettings.plans?.[selectedPlan] || 6;
+  const budget = amt * 0.10;
+  const monthly = (amt * apy/100) / 12;
+  if (prev) prev.style.display = '';
+  const set = (id, v) => { const e = document.getElementById(id); if(e) e.textContent = v; };
+  set('sp-amount', amt.toLocaleString('th',{minimumFractionDigits:2}) + ' USDT');
+  set('sp-plan',   selectedPlan + ' เดือน');
+  set('sp-apy',    apy + '% ต่อปี');
+  set('sp-budget', budget.toFixed(2) + ' USDT');
+  set('sp-monthly', '~' + monthly.toFixed(2) + ' USDT/เดือน');
+}
+
+function populateStakeConfirm() {
+  const amt = parseFloat(document.getElementById('stake-amount')?.value||0);
+  const apy = ET.etSettings.plans?.[selectedPlan] || 6;
+  const budget = amt * 0.10;
+  const now = new Date();
+  const end = new Date(now.getTime() + selectedPlan * 30 * 864e5);
+  const set = (id, v) => { const e = document.getElementById(id); if(e) e.textContent = v; };
+  set('confirm-amount',  amt.toLocaleString('th',{minimumFractionDigits:2}) + ' USDT');
+  set('confirm-amount2', amt.toLocaleString('th',{minimumFractionDigits:2}) + ' USDT');
+  set('confirm-plan',    selectedPlan + ' เดือน');
+  set('confirm-apy',     apy + '% APY');
+  set('confirm-budget',  budget.toFixed(2) + ' USDT');
+  set('confirm-start',   now.toLocaleDateString('th-TH'));
+  set('confirm-end',     end.toLocaleDateString('th-TH'));
+}
+
+function selectPlan(months) {
+  selectedPlan = months;
+  document.querySelectorAll('.plan-card').forEach(c => {
+    c.classList.toggle('selected', Number(c.getAttribute('onclick').replace(/\D/g,'')) === months);
+  });
+  updateStakePreview();
+}
+// ─── CONTRACT SEARCH FILTER ───
+function filterContracts(q) {
+  const sel = document.getElementById('ct-selector');
+  const resultsBox = document.getElementById('ct-search-results');
+  if (!sel) return;
+  const search = (q||'').trim().toLowerCase();
+  const opts = ET.contracts.map((c,i) => ({
+    id: c.contract_id,
+    label: `สัญญา ${i+1}: Stake ${Number(c.stake_amount||0).toFixed(2)} USDT · ${c.plan_months}เดือน · ${c.apy_rate||0}% APY`
+  }));
+  const filtered = search ? opts.filter(o => o.label.toLowerCase().includes(search)) : opts;
+  // อัปเดต dropdown
+  sel.innerHTML = filtered.map(o =>
+    `<option value="${o.id}" ${o.id===ET.contract?.contract_id?'selected':''}>${o.label}</option>`
+  ).join('');
+  // แสดง results box ถ้า search
+  if (search && filtered.length > 0) {
+    resultsBox.style.display = 'block';
+    resultsBox.innerHTML = filtered.map(o =>
+      `<div onclick="selectContract('${o.id}');document.getElementById('ct-search').value='';filterContracts('');"
+        style="padding:8px 12px;cursor:pointer;font-size:12px;color:var(--t1);border-bottom:1px solid var(--bdr);"
+        onmouseover="this.style.background='var(--card2)'" onmouseout="this.style.background=''">
+        ${o.label}
+      </div>`
+    ).join('');
+  } else {
+    resultsBox.style.display = 'none';
+  }
+  if (!search) { resultsBox.style.display = 'none'; }
+}
+
+// ─── POSITIONS SEARCH/FILTER ───
+function filterPositions() {
+  const q    = (document.getElementById('pos-search')?.value||'').trim().toUpperCase();
+  const dir  = document.getElementById('pos-filter-dir')?.value || '';
+  const ctId = document.getElementById('pos-filter-contract')?.value || '';
+  const all  = ET.positions || [];
+  const filtered = all.filter(p => {
+    if (q && !(p.coin||'').toUpperCase().includes(q)) return false;
+    if (dir && p.direction !== dir) return false;
+    if (ctId && String(p.contract_id||'') !== ctId) return false;
+    return true;
+  });
+  const cont = document.getElementById('positions-list');
+  const countEl = document.getElementById('pos-count');
+  if (countEl) countEl.textContent = filtered.length + ' / ' + all.length + ' positions';
+  if (!cont) return;
+  if (!filtered.length) {
+    cont.innerHTML = `<div class="empty-state"><div class="es-ico">🔍</div><p>${q||dir||ctId ? 'ไม่พบผลลัพธ์' : 'ไม่มี Open Position'}</p></div>`;
+    return;
+  }
+  cont.innerHTML = filtered.map(p => renderPosCard(p)).join('');
+  filtered.forEach(p => {
+    const posCtx = ET.contracts.find(c => String(c.contract_id||'') === String(p.contract_id||'')) || ET.contracts[0] || null;
+    if (posCtx?.end_date) startCD('cd-'+p.position_id, new Date(posCtx.end_date).getTime());
+  });
+}
+
+// ─── COUNTDOWN ───
+const cdTimers = {};
+function startCD(id, ts) {
+  if (cdTimers[id]) clearInterval(cdTimers[id]);
+  function tick() {
+    const el = document.getElementById(id);
+    if (!el) { clearInterval(cdTimers[id]); return; }
+    const diff = ts - Date.now();
+    if (diff <= 0) { el.innerHTML = '<span class="terr">ครบสัญญาแล้ว</span>'; clearInterval(cdTimers[id]); return; }
+    const d = Math.floor(diff/864e5), h = Math.floor((diff%864e5)/36e5);
+    const m = Math.floor((diff%36e5)/6e4), s = Math.floor((diff%6e4)/1e3);
+    el.innerHTML = `
+      <div class="cdu"><span class="cdn">${cdPad(d)}</span><div class="cdl">วัน</div></div><span class="cds">:</span>
+      <div class="cdu"><span class="cdn">${cdPad(h)}</span><div class="cdl">ชม.</div></div><span class="cds">:</span>
+      <div class="cdu"><span class="cdn">${cdPad(m)}</span><div class="cdl">นาที</div></div><span class="cds">:</span>
+      <div class="cdu"><span class="cdn">${cdPad(s)}</span><div class="cdl">วิ.</div></div>`;
+  }
+  tick(); cdTimers[id] = setInterval(tick, 1000);
+}
+function cdPad(n) { return String(n).padStart(2,'0'); }
+
+// ─── CONTRACT CARDS (สัญญาเทรด tab) ───
+function renderContractCards() {
+  const cta    = document.getElementById('op-stake-cta');
+  const cards  = document.getElementById('op-contract-cards');
+  const list   = document.getElementById('contract-cards-list');
+  if (!list) return;
+
+  if (!ET.contracts.length) {
+    if (cta) cta.style.display = '';
+    if (cards) cards.style.display = 'none';
+    return;
+  }
+  if (cta) cta.style.display = 'none';
+  if (cards) cards.style.display = '';
+
+  list.innerHTML = ET.contracts.map((c, i) => {
+    const stake      = Number(c.stake_amount || 0);
+    const planMonths = Number(c.plan_months || 0);
+    const apyRate    = Number(c.apy_rate || 0);
+    const start      = (c.start_date || '').slice(0,10);
+    const end        = (c.end_date || '').slice(0,10);
+    const totalBudget= Number(c.order_budget || stake * 0.10);
+    const usedBudget = ET.positions
+      .filter(p => String(p.contract_id||'') === String(c.contract_id||''))
+      .reduce((s,p) => s + Number(p.order_amount||0), 0);
+    const remaining  = Math.max(totalBudget - usedBudget, 0);
+    const budgetPct  = totalBudget > 0 ? Math.min((usedBudget/totalBudget)*100, 100) : 0;
+
+    // APY calculations
+    const apyTotal   = stake * (apyRate/100) * (planMonths/12);
+    const apyPaid    = ET.payoutHistory
+      .filter(p => String(p.contract_id||'') === String(c.contract_id||''))
+      .reduce((s,p) => s + Number(p.apy_amount || p.amount || 0), 0);
+    const apyMonthly = stake * (apyRate/100) / 12;
+    const posCount   = ET.positions.filter(p => String(p.contract_id||'') === String(c.contract_id||'')).length;
+
+    // Status
+    const now = new Date();
+    const endDate = c.end_date ? new Date(c.end_date) : null;
+    const isExpired = endDate && endDate < now;
+    const statusBadge = isExpired
+      ? '<span class="bdg bdg-err">ครบกำหนด</span>'
+      : '<span class="bdg bdg-ok">Active</span>';
+
+    return `
+    <div style="background:linear-gradient(135deg,rgba(240,185,11,.04),var(--card));border:1px solid rgba(240,185,11,.18);border-radius:var(--rl);overflow:hidden;">
+      <!-- Card Header -->
+      <div style="padding:14px 18px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:36px;height:36px;border-radius:var(--r);background:rgba(240,185,11,.12);border:1px solid rgba(240,185,11,.25);display:flex;align-items:center;justify-content:center;font-size:16px;">📋</div>
+          <div>
+            <div style="font-size:14px;font-weight:700;color:var(--t1);">สัญญา ${i+1}</div>
+            <div style="font-size:11px;color:var(--t3);font-family:var(--fm);">${c.contract_id||'—'}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          ${statusBadge}
+          <button class="btn btn-gold btn-sm" onclick="openTradingModal('${c.contract_id}')">📈 ดูการเทรด</button>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--bdr);">
+        <div style="background:var(--card);padding:12px 16px;">
+          <div style="font-size:10px;color:var(--t4);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Stake</div>
+          <div style="font-family:var(--fm);font-size:1rem;font-weight:700;color:var(--gold);">${stake.toLocaleString('th',{minimumFractionDigits:2})} <span style="font-size:11px;color:var(--t4);">USDT</span></div>
+          <div style="font-size:10px;color:var(--t4);margin-top:2px;">${planMonths} เดือน · ${apyRate}% APY</div>
+        </div>
+        <div style="background:var(--card);padding:12px 16px;">
+          <div style="font-size:10px;color:var(--t4);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">วันเริ่ม → สิ้นสุด</div>
+          <div style="font-family:var(--fm);font-size:12px;font-weight:700;color:var(--t1);">${start}</div>
+          <div style="font-size:11px;color:var(--t3);margin-top:2px;">→ ${end}</div>
+        </div>
+        <div style="background:var(--card);padding:12px 16px;">
+          <div style="font-size:10px;color:var(--t4);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Budget คงเหลือ</div>
+          <div style="font-family:var(--fm);font-size:1rem;font-weight:700;color:${remaining<=0?'var(--err)':'var(--ok)'};">${remaining.toFixed(2)} <span style="font-size:11px;color:var(--t4);">USDT</span></div>
+          <div style="font-size:10px;color:var(--t4);margin-top:2px;">${posCount} positions เปิดอยู่</div>
+        </div>
+      </div>
+
+      <!-- APY Section -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--bdr);">
+        <div style="background:var(--card2);padding:12px 16px;">
+          <div style="font-size:10px;color:var(--t4);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">APY รวมตลอดสัญญา</div>
+          <div style="font-family:var(--fm);font-size:1rem;font-weight:700;color:var(--ok);">${apyTotal.toLocaleString('th',{minimumFractionDigits:2})} <span style="font-size:11px;color:var(--t4);">USDT</span></div>
+          <div style="font-size:10px;color:var(--t4);margin-top:2px;">${apyRate}% × ${planMonths} เดือน</div>
+        </div>
+        <div style="background:var(--card2);padding:12px 16px;">
+          <div style="font-size:10px;color:var(--t4);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">APY รับแล้ว</div>
+          <div style="font-family:var(--fm);font-size:1rem;font-weight:700;color:var(--t1);">${apyPaid.toLocaleString('th',{minimumFractionDigits:2})} <span style="font-size:11px;color:var(--t4);">USDT</span></div>
+          <div style="font-size:10px;color:${apyTotal>0?(apyPaid/apyTotal*100).toFixed(0)+'%':'0%'} ≥ 50 ? 'var(--ok)' : 'var(--t4)';margin-top:2px;">${apyTotal>0?((apyPaid/apyTotal)*100).toFixed(1):0}% ของทั้งหมด</div>
+        </div>
+        <div style="background:var(--card2);padding:12px 16px;">
+          <div style="font-size:10px;color:var(--t4);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">APY งวดถัดไป (ประมาณ)</div>
+          <div style="font-family:var(--fm);font-size:1rem;font-weight:700;color:var(--gold);">${apyMonthly.toLocaleString('th',{minimumFractionDigits:2})} <span style="font-size:11px;color:var(--t4);">USDT</span></div>
+          <div style="font-size:10px;color:var(--t4);margin-top:2px;">ต่อเดือน (${apyRate}% APY)</div>
+        </div>
+      </div>
+
+      <!-- Budget bar -->
+      <div style="padding:10px 16px;background:var(--deep);">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--t4);margin-bottom:4px;">
+          <span>วงเงินที่ใช้ไป: ${usedBudget.toFixed(2)} USDT</span>
+          <span>ทั้งหมด: ${totalBudget.toFixed(2)} USDT</span>
+        </div>
+        <div class="budget-bar">
+          <div class="budget-fill${budgetPct>=90?' danger':budgetPct>=60?' warn':''}" style="width:${budgetPct}%"></div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterContractCards(val) {
+  // filter by searching contract_id or stake amount
+  const q = (val||'').toLowerCase();
+  const items = document.querySelectorAll('#contract-cards-list > div');
+  items.forEach(el => {
+    const text = el.textContent.toLowerCase();
+    el.style.display = text.includes(q) ? '' : 'none';
+  });
+}
+
+// ─── TRADING MODAL ───
+let mSelectedCoin = null, mSelectedDir = 'LONG', mSelectedLeverage = 100, mTradingContractId = null;
+let mChartInstance = null, mCurrentTF = '1m';
+
+function openTradingModal(contractId) {
+  const c = ET.contracts.find(ct => ct.contract_id === contractId);
+  if (!c) return;
+  mTradingContractId = contractId;
+  ET.contract = c;  // sync main contract ref
+
+  const stake = Number(c.stake_amount||0);
+  const planM = Number(c.plan_months||0);
+  const apy   = Number(c.apy_rate||0);
+  const totalBudget = Number(c.order_budget || stake * 0.10);
+  const usedBudget  = ET.positions
+    .filter(p => String(p.contract_id||'') === String(contractId||''))
+    .reduce((s,p) => s + Number(p.order_amount||0), 0);
+  const remaining = Math.max(totalBudget - usedBudget, 0);
+  const pct = totalBudget > 0 ? Math.min((usedBudget/totalBudget)*100,100) : 0;
+
+  document.getElementById('m-trading-title').textContent = '📈 เทรด — สัญญา ' + (ET.contracts.indexOf(c)+1);
+  document.getElementById('m-trading-sub').textContent = 'Stake ' + stake.toFixed(0) + ' USDT · ' + planM + 'เดือน · ' + apy + '% APY';
+  document.getElementById('m-op-used').textContent = usedBudget.toFixed(2);
+  document.getElementById('m-op-remaining').textContent = remaining.toFixed(2);
+  document.getElementById('m-op-remaining-pct').textContent = (100-pct).toFixed(0) + '%';
+  document.getElementById('m-op-total-budget').textContent = totalBudget.toFixed(2);
+  const fill = document.getElementById('m-op-budget-fill');
+  if (fill) { fill.style.width = pct + '%'; fill.className = 'budget-fill' + (pct>=90?' danger':pct>=60?' warn':''); }
+
+  // Coin list in modal
+  mRenderCoinList();
+  if (!mSelectedCoin) { const coins = ET.etSettings.coins||['BTC','ETH','SOL','BNB']; mSelectedCoin = coins[0]; }
+  mSelectDir('LONG');
+  mSelLev(100);
+
+  // Positions mini list
+  const miniList = document.getElementById('m-positions-mini');
+  if (miniList) {
+    const filtered = ET.positions.filter(p => String(p.contract_id||'') === String(contractId||''));
+    if (filtered.length) {
+      miniList.innerHTML = filtered.map(p => renderPosCard(p, true)).join('');
+      filtered.forEach(p => { if(p.position_id) startCD('cd-'+p.position_id, c.end_date ? new Date(c.end_date).getTime() : 0); });
+    } else {
+      miniList.innerHTML = '<div style="font-size:12px;color:var(--t4);text-align:center;padding:12px;">ไม่มี Position</div>';
+    }
+  }
+
+  // Budget state
+  const exh = document.getElementById('m-op-budget-exhausted');
+  const sub = document.getElementById('m-op-submit-area');
+  if (remaining <= 0) { if(exh)exh.style.display=''; if(sub)sub.style.display='none'; }
+  else { if(exh)exh.style.display='none'; if(sub)sub.style.display=''; }
+
+  // Contract countdown
+  if (c.end_date) startCD('m-ct-countdown', new Date(c.end_date).getTime());
+
+  // Reset amount
+  const amtEl = document.getElementById('m-op-amount');
+  if (amtEl) amtEl.value = '';
+  document.getElementById('m-op-preview').style.display = 'none';
+  document.getElementById('m-op-amount-warn').style.display = 'none';
+
+  openM('m-trading');
+  setTimeout(() => { mLoadCoinChart(mSelectedCoin); }, 300);
+}
+
+function mRenderCoinList() {
+  const coins = ET.etSettings.coins || ['BTC','ETH','SOL','BNB'];
+  const icons = { BTC:'₿', ETH:'Ξ', SOL:'◎', BNB:'⬡' };
+  const list = document.getElementById('m-coin-list');
+  if (!list) return;
+  list.innerHTML = coins.map(c => `
+    <div class="coin-opt ${mSelectedCoin===c?'selected':''}" onclick="mSelectCoin('${c}')">
+      <div class="coin-icon">${icons[c]||'🪙'}</div>
+      <div>
+        <div class="coin-name">${c}/USDT</div>
+        <div class="coin-price" data-coin="${c}">$${(PRICES[c]||0).toLocaleString()}</div>
+      </div>
+    </div>`).join('');
+}
+function mSelectCoin(coin) {
+  mSelectedCoin = coin;
+  mRenderCoinList();
+  const lbl = document.getElementById('m-chart-coin-label');
+  if (lbl) lbl.textContent = coin + '/USDT · ' + mCurrentTF;
+  const pe = document.getElementById('m-prev-entry');
+  if (pe) pe.textContent = '$' + (PRICES[coin]||0).toLocaleString();
+  mUpdateOrderPreview();
+  mLoadCoinChart(coin);
+}
+function mSelectDir(dir) {
+  mSelectedDir = dir;
+  const lg = document.getElementById('m-dir-long-tab');
+  const sh = document.getElementById('m-dir-short-tab');
+  if (lg && sh) {
+    if (dir === 'LONG') {
+      lg.style.borderBottomColor = 'var(--ok)'; lg.style.background = 'rgba(14,203,129,.06)';
+      sh.style.borderBottomColor = 'transparent'; sh.style.background = 'var(--card2)';
+      const b = document.getElementById('m-btn-open-order');
+      if(b){b.style.background='rgba(14,203,129,.15)';b.style.color='var(--ok)';b.style.border='1px solid rgba(14,203,129,.3)';b.textContent='เปิด LONG Order';}
+    } else {
+      sh.style.borderBottomColor = 'var(--err)'; sh.style.background = 'rgba(246,70,93,.06)';
+      lg.style.borderBottomColor = 'transparent'; lg.style.background = 'var(--card2)';
+      const b = document.getElementById('m-btn-open-order');
+      if(b){b.style.background='rgba(246,70,93,.15)';b.style.color='var(--err)';b.style.border='1px solid rgba(246,70,93,.3)';b.textContent='เปิด SHORT Order';}
+    }
+  }
+  mUpdateOrderPreview();
+}
+function mSelLev(lev) {
+  mSelectedLeverage = lev;
+  document.querySelectorAll('#m-lev-row .lev-btn').forEach(b => {
+    const bLev = Number((b.getAttribute('onclick')||'').replace(/\D/g,''));
+    b.classList.toggle('selected', bLev === lev);
+  });
+  const w = document.getElementById('m-lev-warn');
+  if (w) { if(lev>=100){w.textContent=`⚠ Leverage ${lev}x มีความเสี่ยงสูง`;w.style.display='';}else w.style.display='none'; }
+  mUpdateOrderPreview();
+}
+function mSetOrderPct(pct) {
+  const c = ET.contracts.find(ct => ct.contract_id === mTradingContractId);
+  if (!c) return;
+  const tb = Number(c.order_budget || Number(c.stake_amount||0)*0.10);
+  const ub = ET.positions.filter(p=>String(p.contract_id||'')===String(mTradingContractId||'')).reduce((s,p)=>s+Number(p.order_amount||0),0);
+  const rem = Math.max(tb-ub,0);
+  const el = document.getElementById('m-op-amount');
+  if (el) { el.value = (Math.floor(rem*pct*100)/100)||''; mUpdateOrderPreview(); }
+}
+function mUpdateOrderPreview() {
+  const amt = parseFloat(document.getElementById('m-op-amount')?.value||0);
+  const c = ET.contracts.find(ct => ct.contract_id === mTradingContractId);
+  if (!c) return;
+  const tb = Number(c.order_budget||Number(c.stake_amount||0)*0.10);
+  const ub = ET.positions.filter(p=>String(p.contract_id||'')===String(mTradingContractId||'')).reduce((s,p)=>s+Number(p.order_amount||0),0);
+  const rem = Math.max(tb-ub,0);
+  const w = document.getElementById('m-op-amount-warn');
+  if (w) { if(amt>rem&&amt>0){w.textContent=`⚠ เกินวงเงินคงเหลือ (${rem.toFixed(2)} USDT)`;w.style.display='';}else w.style.display='none'; }
+  const pe = document.getElementById('m-prev-entry');
+  if (pe && mSelectedCoin) pe.textContent = '$' + (PRICES[mSelectedCoin]||0).toLocaleString();
+  const prev = document.getElementById('m-op-preview');
+  if (amt > 0 && mSelectedCoin && mSelectedDir && amt <= rem) {
+    if (prev) prev.style.display = '';
+    const el = id => document.getElementById(id);
+    if (el('m-prev-amt')) el('m-prev-amt').textContent = amt.toFixed(2) + ' USDT';
+    if (el('m-prev-lev')) el('m-prev-lev').textContent = mSelectedLeverage + 'x';
+    if (el('m-prev-notional')) el('m-prev-notional').textContent = (amt*mSelectedLeverage).toLocaleString('th',{minimumFractionDigits:2}) + ' USDT';
+    if (el('m-prev-entry2')) el('m-prev-entry2').textContent = '$' + (PRICES[mSelectedCoin]||0).toLocaleString();
+  } else { if(prev) prev.style.display='none'; }
+}
+function mChangeTF(btn, tf) {
+  mCurrentTF = tf;
+  document.querySelectorAll('#m-trading .chart-tf-btns .tf-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const lbl = document.getElementById('m-chart-coin-label');
+  if (lbl && mSelectedCoin) lbl.textContent = mSelectedCoin + '/USDT · ' + tf;
+  mLoadCoinChart(mSelectedCoin);
+}
+function mLoadCoinChart(coin) {
+  if (!coin) return;
+  const canvas = document.getElementById('m-myChart');
+  if (!canvas) return;
+  if (mChartInstance) { try { mChartInstance.destroy(); } catch(e){} mChartInstance = null; }
+  const ctx = canvas.getContext('2d');
+  const basePrice = PRICES[coin] || 50000;
+  const labels = [], data = [];
+  for (let i = 29; i >= 0; i--) {
+    labels.push(i === 0 ? 'Now' : '-' + i);
+    data.push(parseFloat((basePrice * (1 + (Math.random()-0.5)*0.02)).toFixed(2)));
+  }
+  data[data.length-1] = basePrice;
+  const color = data[data.length-1] >= data[0] ? '#0ECB81' : '#F6465D';
+  mChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets: [{ data, borderColor: color, borderWidth: 1.5, fill: true,
+      backgroundColor: color === '#0ECB81' ? 'rgba(14,203,129,.07)' : 'rgba(246,70,93,.07)',
+      tension: 0.3, pointRadius: 0 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { x: { display: false }, y: { display: true, grid: { color:'rgba(255,255,255,.04)' },
+        ticks: { color:'#5E6673', font:{size:10}, maxTicksLimit:4 } } } }
+  });
+}
+async function mSubmitOpenOrder() {
+  if (!SESSION || !mTradingContractId) { showToast('ไม่มีสัญญาเทรด','err'); return; }
+  const c = ET.contracts.find(ct => ct.contract_id === mTradingContractId);
+  if (!c) { showToast('ไม่พบสัญญา','err'); return; }
+  const amt = parseFloat(document.getElementById('m-op-amount').value||0);
+  if (!amt || amt < 1)  { showToast('ใส่จำนวน Order Amount','warn'); return; }
+  if (!mSelectedCoin)   { showToast('เลือกเหรียญ','warn'); return; }
+  if (!mSelectedDir)    { showToast('เลือกทิศทาง','warn'); return; }
+  const tb = Number(c.order_budget||Number(c.stake_amount||0)*0.10);
+  const ub = ET.positions.filter(p=>String(p.contract_id||'')===String(mTradingContractId||'')).reduce((s,p)=>s+Number(p.order_amount||0),0);
+  const rem = tb-ub;
+  if (amt > rem + 0.001) { showToast('เกินวงเงินคงเหลือ ('+rem.toFixed(2)+' USDT)','err'); return; }
+  ET.contract = c;
+  selectedCoin = mSelectedCoin; selectedDir = mSelectedDir; selectedLeverage = mSelectedLeverage;
+  const amtEl = document.getElementById('op-amount');
+  if (amtEl) amtEl.value = amt;
+  await submitOpenOrder();
+  if (document.getElementById('m-op-amount')) document.getElementById('m-op-amount').value = '';
+}
+
+// ─── NEW ORDER PANEL (My Positions tab) ───
+let npSelectedDir = 'LONG', npSelectedLeverage = 100;
+
+function toggleNewOrderPanel() {
+  const panel = document.getElementById('new-order-panel');
+  if (!panel) return;
+  const visible = panel.style.display !== 'none';
+  panel.style.display = visible ? 'none' : '';
+  if (!visible) {
+    // Populate contract selector
+    const sel = document.getElementById('np-ct-selector');
+    if (sel) {
+      sel.innerHTML = ET.contracts.map((c,i)=>
+        `<option value="${c.contract_id}">สัญญา ${i+1}: Stake ${Number(c.stake_amount||0).toFixed(0)} USDT · ${c.plan_months}เดือน</option>`
+      ).join('');
+      if (ET.contract) sel.value = ET.contract.contract_id;
+    }
+    // Coin selector
+    const coinSel = document.getElementById('np-coin-selector');
+    if (coinSel) {
+      const coins = ET.etSettings.coins || ['BTC','ETH','SOL','BNB'];
+      coinSel.innerHTML = coins.map(c=>`<option value="${c}">${c}/USDT — $${(PRICES[c]||0).toLocaleString()}</option>`).join('');
+    }
+    syncNewOrderContract(sel?.value || ET.contracts[0]?.contract_id);
+    npSelectDir('LONG');
+    npSelectLev(100);
+  }
+}
+
+function syncNewOrderContract(contractId) {
+  const c = ET.contracts.find(ct => ct.contract_id === contractId);
+  if (!c) return;
+  ET.contract = c;
+  const tb = Number(c.order_budget||Number(c.stake_amount||0)*0.10);
+  const ub = ET.positions.filter(p=>String(p.contract_id||'')===String(contractId||'')).reduce((s,p)=>s+Number(p.order_amount||0),0);
+  const rem = Math.max(tb-ub,0);
+  const r = document.getElementById('np-remaining'); if(r) r.textContent = rem.toFixed(2);
+  const u = document.getElementById('np-used');      if(u) u.textContent = ub.toFixed(2);
+  const t = document.getElementById('np-total');     if(t) t.textContent = tb.toFixed(2);
+  updateNpPreview();
+}
+
+function npSelectCoin(coin) { updateNpPreview(); }
+
+function npSelectDir(dir) {
+  npSelectedDir = dir;
+  const lg = document.getElementById('np-dir-long');
+  const sh = document.getElementById('np-dir-short');
+  if (dir === 'LONG') {
+    lg.style.border='1px solid rgba(14,203,129,.5)'; lg.style.background='rgba(14,203,129,.1)';
+    sh.style.border='1px solid var(--bdr2)'; sh.style.background='var(--card2)';
+  } else {
+    sh.style.border='1px solid rgba(246,70,93,.5)'; sh.style.background='rgba(246,70,93,.1)';
+    lg.style.border='1px solid var(--bdr2)'; lg.style.background='var(--card2)';
+  }
+  const btn = document.getElementById('np-submit-btn');
+  if (btn) { btn.style.background=dir==='LONG'?'rgba(14,203,129,.15)':'rgba(246,70,93,.15)'; btn.style.color=dir==='LONG'?'var(--ok)':'var(--err)'; btn.style.border=dir==='LONG'?'1px solid rgba(14,203,129,.3)':'1px solid rgba(246,70,93,.3)'; btn.textContent='เปิด '+dir+' Order'; }
+  updateNpPreview();
+}
+
+function npSelectLev(lev) {
+  npSelectedLeverage = lev;
+  [1,5,10,20,100,150].forEach(l => { const b=document.getElementById('np-lev-'+l); if(b)b.classList.toggle('selected',l===lev); });
+  const w = document.getElementById('np-lev-warn'); if(w){if(lev>=100){w.textContent='⚠ Leverage สูง';w.style.display='';}else w.style.display='none';}
+  updateNpPreview();
+}
+
+function setNpPct(pct) {
+  const sel = document.getElementById('np-ct-selector');
+  const c = ET.contracts.find(ct=>ct.contract_id===(sel?.value||''));
+  if (!c) return;
+  const tb = Number(c.order_budget||Number(c.stake_amount||0)*0.10);
+  const ub = ET.positions.filter(p=>String(p.contract_id||'')===String(c.contract_id||'')).reduce((s,p)=>s+Number(p.order_amount||0),0);
+  const rem = Math.max(tb-ub,0);
+  const el = document.getElementById('np-amount');
+  if (el) { el.value = (Math.floor(rem*pct*100)/100)||''; updateNpPreview(); }
+}
+
+function updateNpPreview() {
+  const amt = parseFloat(document.getElementById('np-amount')?.value||0);
+  const sel = document.getElementById('np-ct-selector');
+  const c = ET.contracts.find(ct=>ct.contract_id===(sel?.value||''));
+  if (!c) return;
+  const tb = Number(c.order_budget||Number(c.stake_amount||0)*0.10);
+  const ub = ET.positions.filter(p=>String(p.contract_id||'')===String(c.contract_id||'')).reduce((s,p)=>s+Number(p.order_amount||0),0);
+  const rem = Math.max(tb-ub,0);
+  const coinSel = document.getElementById('np-coin-selector');
+  const coin = coinSel?.value || 'BTC';
+  const w = document.getElementById('np-warn');
+  if (w) { if(amt>rem&&amt>0){w.textContent='⚠ เกินวงเงินคงเหลือ ('+rem.toFixed(2)+' USDT)';w.style.display='';}else w.style.display='none'; }
+  const prev = document.getElementById('np-preview');
+  if (amt > 0 && coin && amt <= rem) {
+    if (prev) prev.style.display = '';
+    const el = id=>document.getElementById(id);
+    if(el('np-prev-price'))    el('np-prev-price').textContent = '$'+(PRICES[coin]||0).toLocaleString();
+    if(el('np-prev-amt'))      el('np-prev-amt').textContent = amt.toFixed(2)+' USDT';
+    if(el('np-prev-lev'))      el('np-prev-lev').textContent = npSelectedLeverage+'x';
+    if(el('np-prev-notional')) el('np-prev-notional').textContent = (amt*npSelectedLeverage).toLocaleString('th',{minimumFractionDigits:2})+' USDT';
+  } else { if(prev)prev.style.display='none'; }
+}
+
+async function submitNewOrderFromPanel() {
+  const sel = document.getElementById('np-ct-selector');
+  const c = ET.contracts.find(ct=>ct.contract_id===(sel?.value||''));
+  if (!c || !SESSION) { showToast('ไม่พบสัญญา','err'); return; }
+  const amt = parseFloat(document.getElementById('np-amount')?.value||0);
+  if (!amt||amt<1) { showToast('ใส่จำนวน Order Amount','warn'); return; }
+  const coinSel = document.getElementById('np-coin-selector');
+  const coin = coinSel?.value;
+  if (!coin) { showToast('เลือกเหรียญ','warn'); return; }
+  const tb = Number(c.order_budget||Number(c.stake_amount||0)*0.10);
+  const ub = ET.positions.filter(p=>String(p.contract_id||'')===String(c.contract_id||'')).reduce((s,p)=>s+Number(p.order_amount||0),0);
+  const rem = tb-ub;
+  if (amt > rem+0.001) { showToast('เกินวงเงินคงเหลือ ('+rem.toFixed(2)+' USDT)','err'); return; }
+  ET.contract = c;
+  selectedCoin = coin; selectedDir = npSelectedDir; selectedLeverage = npSelectedLeverage;
+  const amtEl = document.getElementById('op-amount'); if(amtEl)amtEl.value=amt;
+  await submitOpenOrder();
+  document.getElementById('np-amount').value = '';
+  document.getElementById('new-order-panel').style.display = 'none';
+}
+
+// ─── UPDATE POSITIONS SUMMARY ───
+function updatePositionsSummary() {
+  const total   = ET.positions.length;
+  const amount  = ET.positions.reduce((s,p)=>s+Number(p.order_amount||0),0);
+  const pnl     = ET.positions.reduce((s,p)=>s+calcPnl(p),0);
+  const longs   = ET.positions.filter(p=>p.direction==='LONG').length;
+  const shorts  = ET.positions.filter(p=>p.direction==='SHORT').length;
+  const el = id=>document.getElementById(id);
+  if(el('pos-sum-total'))  el('pos-sum-total').textContent = total;
+  if(el('pos-sum-amount')) el('pos-sum-amount').textContent = amount.toLocaleString('th',{minimumFractionDigits:2})+' USDT';
+  const pnlEl = el('pos-sum-pnl');
+  if(pnlEl){ pnlEl.textContent=(pnl>=0?'+':'')+pnl.toLocaleString('th',{minimumFractionDigits:2})+' USDT'; pnlEl.style.color=pnl>=0?'var(--ok)':'var(--err)'; }
+  if(el('pos-sum-ratio')) el('pos-sum-ratio').innerHTML = `<span style="color:var(--ok)">${longs}</span> / <span style="color:var(--err)">${shorts}</span>`;
+}
+
+// ─── REFRESH POSITIONS ───
+async function refreshPositions() {
+  const btn = document.getElementById('btn-refresh-pos');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ กำลังโหลด...'; }
+  await loadEtData();
+  if (btn) { btn.disabled = false; btn.textContent = '↺ รีเฟรช'; }
+}
+
+// ─── SUBMIT STAKE ───
+async function submitStake() {
+  const amt = parseFloat(document.getElementById('stake-amount')?.value||0);
+  if (!amt || amt < 50) { showToast('ขั้นต่ำ 50 USDT','warn'); return; }
+  if (!selectedPlan) { showToast('เลือก Plan ก่อน','warn'); return; }
+  if (Number(SESSION?.customer_wallet_usdt||0) < amt) { showToast('ยอด Main Account ไม่พอ','err'); return; }
+  const btn = document.getElementById('btn-confirm-stake');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ กำลังดำเนินการ...'; }
+  showLoad('กำลัง Stake...');
+  try {
+    const res = await apiPost({
+      action: 'etStake',
+      member_id: SESSION.member_id,
+      stake_amount: amt,
+      plan_months: selectedPlan,
+      apy_rate: ET.etSettings?.plans?.[selectedPlan]
+    });
+    hideLoad();
+    if (btn) { btn.disabled = false; btn.textContent = '✅ ยืนยันทำสัญญา'; }
+    if (res.success) {
+      closeM('m-stake');
+      showToast('✅ Stake สำเร็จ! Trading Contract เริ่มทำงานแล้ว');
+      SESSION.customer_wallet_usdt = Number(SESSION.customer_wallet_usdt||0) - amt;
+      saveSession(SESSION);
+      loadEtData();
+    } else showToast(res.error||'Stake ไม่สำเร็จ','err');
+  } catch(e) {
+    hideLoad();
+    if (btn) { btn.disabled = false; btn.textContent = '✅ ยืนยันทำสัญญา'; }
+    // Offline simulation
+    const now = new Date();
+    const end = new Date(now.getFullYear(), now.getMonth()+selectedPlan, now.getDate());
+    const newCt = {
+      contract_id: 'CT-' + Date.now(),
+      member_id: SESSION.member_id,
+      stake_amount: amt,
+      plan_months: selectedPlan,
+      apy_rate: ET.etSettings?.plans?.[selectedPlan],
+      order_budget: amt * 0.10,
+      start_date: now.toISOString(),
+      end_date: end.toISOString(),
+      status: 'active'
+    };
+    if (!ET.contracts) ET.contracts = [];
+    ET.contracts.unshift(newCt);
+    ET.contract = newCt;
+    SESSION.customer_wallet_usdt = Number(SESSION.customer_wallet_usdt||0) - amt;
+    saveSession(SESSION);
+    closeM('m-stake');
+    showToast('✅ Stake สำเร็จ (Offline)');
+    renderAll();
+  }
+}
+
+// ─── TOAST ───
+function showToast(msg, type='ok') {
+  let wrap = document.getElementById('_toast');
+  if (!wrap) {
+    wrap = document.createElement('div'); wrap.id = '_toast';
+    Object.assign(wrap.style, {
+      position:'fixed', bottom:'24px', right:'24px', zIndex:9999,
+      display:'flex', flexDirection:'column', gap:'8px', pointerEvents:'none'
+    });
+    document.body.appendChild(wrap);
+  }
+  const t = document.createElement('div');
+  const bg = type==='ok'?'rgba(14,203,129,.95)':type==='err'?'rgba(246,70,93,.95)':'rgba(240,185,11,.95)';
+  Object.assign(t.style, {
+    background: bg, color: type==='warn'?'#0B0E11':'#fff',
+    padding:'11px 18px', borderRadius:'8px', fontWeight:'600', fontSize:'13px',
+    maxWidth:'320px', opacity:'1', transition:'opacity .4s', lineHeight:'1.5',
+    boxShadow:'0 4px 16px rgba(0,0,0,.4)'
+  });
+  t.textContent = msg;
+  wrap.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 4000);
+}
+
+// ─── LOADING ───
+function showLoad(msg) {
+  let el = document.getElementById('_load');
+  if (!el) {
+    el = document.createElement('div'); el.id = '_load';
+    el.innerHTML = `<div style="text-align:center"><div style="font-size:2rem;margin-bottom:12px;">⏳</div><div id="_load_msg" style="font-size:14px;color:var(--t2)"></div></div>`;
+    Object.assign(el.style, {position:'fixed',inset:0,background:'rgba(11,14,17,.85)',zIndex:9998,
+      display:'flex',alignItems:'center',justifyContent:'center',backdropFilter:'blur(4px)'});
+    document.body.appendChild(el);
+  }
+  document.getElementById('_load_msg').textContent = msg||'กำลังดำเนินการ...';
+  el.style.display = 'flex';
+}
+function hideLoad() { const el=document.getElementById('_load'); if(el) el.style.display='none'; }
+
+// ─── APP INIT ───
+loadSession();
+
+// ── Ticker: start immediately (even before login) ──
+(async function startTicker() {
+  // Seed mock prices ก่อน API ตอบกลับ
+  if (!PRICES.BTC) PRICES = { BTC:104000, ETH:2500, SOL:145, BNB:600, XRP:0.55 };
+  updateTickerStrip();
+  // Fetch real prices
+  await fetchHLPrices();
+  updateTickerStrip();
+  // Update every 5 seconds
+  setInterval(async () => {
+    await fetchHLPrices();
+    updateTickerStrip();
+  }, 5000);
+})();
+
+</script>
+</body>
+</html>
